@@ -1,0 +1,44 @@
+2025-11-23 12:04:01 - destination_service - INFO - get:36 - Найдено направлений: 3
+2025-11-30 13:39:56 - destination_service - INFO - get:36 - Найдено направлений: 3
+2025-12-07 11:31:40 - destination_service - INFO - post:90 - Создано направление: Новое Направление (ID: 3)
+2025-12-07 11:31:50 - destination_service - INFO - get:36 - Найдено направлений: 2
+2025-12-07 11:32:12 - destination_service - INFO - get:36 - Найдено направлений: 1
+2025-12-07 11:32:15 - destination_service - INFO - post:90 - Создано направление: Новое Тестовое Направление (ID: 1)
+2025-12-07 11:32:16 - destination_service - WARNING - post:65 - Ошибка валидации данных направления: [{'field': '', 'message': "'country' is a required property", 'value': {'name': 'Только имя', 'price': 1000.0}}]
+2025-12-07 11:42:56 - destination_service - INFO - post:90 - Создано направление: Новое Направление (ID: 3)
+2025-12-07 11:43:06 - destination_service - INFO - get:36 - Найдено направлений: 2
+2025-12-07 11:43:29 - destination_service - INFO - get:36 - Найдено направлений: 1
+2025-12-07 11:43:30 - destination_service - INFO - post:90 - Создано направление: Новое Тестовое Направление (ID: 1)
+2025-12-07 11:43:31 - destination_service - WARNING - post:65 - Ошибка валидации данных направления: [{'field': '', 'message': "'country' is a required property", 'value': {'name': 'Только имя', 'price': 1000.0}}]
+2025-12-07 11:53:21 - destination_service - INFO - post:90 - Создано направление: Новое Направление (ID: 3)
+2025-12-07 11:53:30 - destination_service - INFO - get:36 - Найдено направлений: 2
+2025-12-07 11:53:53 - destination_service - INFO - get:36 - Найдено направлений: 1
+2025-12-07 11:53:54 - destination_service - INFO - post:90 - Создано направление: Новое Тестовое Направление (ID: 1)
+2025-12-07 11:53:56 - destination_service - WARNING - post:65 - Ошибка валидации данных направления: [{'field': '', 'message': "'country' is a required property", 'value': {'name': 'Только имя', 'price': 1000.0}}]
+2025-12-07 11:59:47 - destination_service - INFO - post:90 - Создано направление: Новое Направление (ID: 3)
+2025-12-07 11:59:56 - destination_service - INFO - get:36 - Найдено направлений: 2
+2025-12-07 12:00:20 - destination_service - INFO - get:36 - Найдено направлений: 1
+2025-12-07 12:00:22 - destination_service - INFO - post:90 - Создано направление: Новое Тестовое Направление (ID: 1)
+2025-12-07 12:00:25 - destination_service - WARNING - post:65 - Ошибка валидации данных направления: [{'field': '', 'message': "'country' is a required property", 'value': {'name': 'Только имя', 'price': 1000.0}}]
+2025-12-07 12:04:06 - destination_service - INFO - post:90 - Создано направление: Новое Направление (ID: 3)
+2025-12-07 12:04:15 - destination_service - INFO - get:36 - Найдено направлений: 2
+2025-12-07 12:04:37 - destination_service - INFO - get:36 - Найдено направлений: 1
+2025-12-07 12:04:39 - destination_service - INFO - post:90 - Создано направление: Новое Тестовое Направление (ID: 1)
+2025-12-07 12:04:40 - destination_service - WARNING - post:65 - Ошибка валидации данных направления: [{'field': '', 'message': "'country' is a required property", 'value': {'name': 'Только имя', 'price': 1000.0}}]
+2025-12-07 12:09:42 - destination_service - INFO - post:90 - Создано направление: Новое Направление (ID: 3)
+2025-12-07 12:09:52 - destination_service - INFO - get:36 - Найдено направлений: 2
+2025-12-07 12:10:13 - destination_service - INFO - get:36 - Найдено направлений: 1
+2025-12-07 12:10:15 - destination_service - INFO - post:90 - Создано направление: Новое Тестовое Направление (ID: 1)
+2025-12-07 12:10:16 - destination_service - WARNING - post:65 - Ошибка валидации данных направления: [{'field': '', 'message': "'country' is a required property", 'value': {'name': 'Только имя', 'price': 1000.0}}]
+2025-12-14 14:10:52 - destination_service - INFO - get:36 - Найдено направлений: 3
+2025-12-14 14:14:37 - destination_service - INFO - post:90 - Создано направление: Нью-Йорк (ID: 4)
+2025-12-14 14:16:05 - destination_service - INFO - get:36 - Найдено направлений: 4
+2025-12-14 14:24:08 - destination_service - INFO - post:90 - Создано направление: Швейцарские Альпы (ID: 5)
+2025-12-14 14:29:11 - destination_service - WARNING - post:96 - Ошибка валидации при создании направления: Направление с названием 'Швейцарские Альпы' в стране 'Швейцария' уже существует
+2025-12-14 14:32:01 - destination_service - INFO - get:36 - Найдено направлений: 5
+2025-12-14 14:47:52 - destination_service - WARNING - post:65 - Ошибка валидации данных направления: [{'field': '', 'message': "'country' is a required property", 'value': {'name': 'Индия'}}]
+2025-12-14 14:48:52 - destination_service - WARNING - post:65 - Ошибка валидации данных направления: [{'field': '', 'message': "'country' is a required property", 'value': {'name': 'Только имя'}}]
+2025-12-14 14:52:12 - destination_service - WARNING - post:65 - Ошибка валидации данных направления: [{'field': 'price', 'message': '-100 is less than the minimum of 0', 'value': -100}]
+2025-12-14 14:53:40 - destination_service - WARNING - post:65 - Ошибка валидации данных направления: [{'field': 'price', 'message': '-100 is less than the minimum of 0', 'value': -100}]
+2025-12-14 15:05:55 - destination_service - WARNING - post:65 - Ошибка валидации данных направления: [{'field': 'price', 'message': '-100 is less than the minimum of 0', 'value': -100}]
+2025-12-14 15:07:14 - destination_service - WARNING - post:65 - Ошибка валидации данных направления: [{'field': '', 'message': "'country' is a required property", 'value': {'name': 'Тест'}}]

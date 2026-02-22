@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "destination_id": {
+            "type": "integer",
+            "minimum": 1
+        },
+        "start_date": {
+            "type": "string",
+            "format": "date"
+        },
+        "end_date": {
+            "type": "string",
+            "format": "date"
+        },
+        "available_slots": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "is_active": {
+            "type": "boolean"
+        }
+    },
+    "required": [],
+    "additionalProperties": false
+}

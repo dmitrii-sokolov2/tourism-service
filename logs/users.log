@@ -1,0 +1,738 @@
+2025-11-23 11:59:52 - user_service - INFO - get:50 - Найдено пользователей: 4
+2025-11-23 12:02:14 - user_service - WARNING - post:112 - Ошибка валидации при создании пользователя: Некорректный формат email
+2025-11-23 12:03:29 - user_service - INFO - post:106 - Создан пользователь: Андрей Карпенко (andrey@mail.com) ID: 5
+2025-11-23 12:04:36 - user_service - WARNING - get:146 - Пользователь с ID 9999 не найден
+2025-11-23 12:05:01 - user_service - WARNING - post:348 - Ошибка бронирования: Тур с ID 19 не найден
+2025-11-23 12:05:10 - user_service - WARNING - post:348 - Ошибка бронирования: Пользователь 1 уже забронировал тур 1
+2025-11-23 12:08:47 - user_service - INFO - post:335 - Тур забронирован: пользователь Тест Тестов (ID: 2), тур 2
+2025-11-30 13:39:40 - user_service - INFO - get:72 - Найдено пользователей: 5
+2025-11-30 13:41:14 - user_service - ERROR - post:385 - Ошибка при асинхронном бронировании: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 371, in post
+    booking_result = future.result(timeout=30)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\_base.py", line 450, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\_base.py", line 395, in __get_result
+    raise self._exception
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "C:\Users\Админ\Desktop\Курсач\services\tourism_services.py", line 436, in _process_booking_async
+    user = UserService.get_user_by_id(user_id)
+  File "C:\Users\Админ\Desktop\Курсач\services\tourism_services.py", line 305, in get_user_by_id
+    user = db.session.get(User, user_id)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\sqlalchemy\orm\scoping.py", line 1044, in get
+    return self._proxied.get(
+           ^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\sqlalchemy\orm\scoping.py", line 195, in _proxied
+    return self.registry()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\sqlalchemy\util\_collections.py", line 634, in __call__
+    key = self.scopefunc()
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask_sqlalchemy\session.py", line 111, in _app_ctx_id
+    return id(app_ctx._get_current_object())  # type: ignore[attr-defined]
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\local.py", line 519, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+2025-11-30 13:44:32 - user_service - ERROR - post:385 - Ошибка при асинхронном бронировании: Пользователь 1 уже забронировал тур 1
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 371, in post
+    booking_result = future.result(timeout=30)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\_base.py", line 450, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\_base.py", line 395, in __get_result
+    raise self._exception
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "C:\Users\Админ\Desktop\Курсач\services\tourism_services.py", line 438, in _process_with_context
+    return ThreadSafeBookingService.thread_safe_booking(user, tour)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\Админ\Desktop\Курсач\services\tourism_services.py", line 406, in thread_safe_booking
+    return BookingService.create_booking(user, tour)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\Админ\Desktop\Курсач\services\tourism_services.py", line 226, in create_booking
+    BookingService.can_book_tour(user, tour)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\Админ\Desktop\Курсач\services\tourism_services.py", line 203, in can_book_tour
+    raise DuplicateBookingException(user.id, tour.id)
+exceptions.custom_exceptions.DuplicateBookingException: Пользователь 1 уже забронировал тур 1
+2025-11-30 13:44:57 - user_service - INFO - create_booking:230 - Пользователь Сергей Иванов забронировал тур 3
+2025-11-30 13:44:57 - user_service - INFO - create_booking:230 - Пользователь Дмитрий Соколов забронировал тур 4
+2025-11-30 13:44:57 - user_service - INFO - create_booking:230 - Пользователь Андрей Карпенко забронировал тур 5
+2025-11-30 13:45:39 - user_service - INFO - create_booking:230 - Пользователь Сергей Иванов забронировал тур 4
+2025-11-30 13:45:39 - user_service - INFO - post:374 - Тур забронирован асинхронно: пользователь 3, тур 4
+2025-11-30 13:45:39 - user_service - ERROR - post:385 - Ошибка при асинхронном бронировании: Parent instance <Tour at 0x18999f8dcd0> is not bound to a Session; lazy load operation of attribute 'users' cannot proceed (Background on this error at: https://sqlalche.me/e/20/bhk3)
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 379, in post
+    'tour': booking_result['tour'].to_dict(),
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Админ\Desktop\Курсач\models.py", line 208, in to_dict
+    'users_count': len(self.users)
+                       ^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\sqlalchemy\orm\attributes.py", line 569, in __get__
+    return self.impl.get(state, dict_)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\sqlalchemy\orm\attributes.py", line 1096, in get
+    value = self._fire_loader_callables(state, key, passive)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\sqlalchemy\orm\attributes.py", line 1131, in _fire_loader_callables
+    return self.callable_(state, passive)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\sqlalchemy\orm\strategies.py", line 922, in _load_for_state
+    raise orm_exc.DetachedInstanceError(
+    ...<3 lines>...
+    )
+sqlalchemy.orm.exc.DetachedInstanceError: Parent instance <Tour at 0x18999f8dcd0> is not bound to a Session; lazy load operation of attribute 'users' cannot proceed (Background on this error at: https://sqlalche.me/e/20/bhk3)
+2025-11-30 13:48:02 - user_service - INFO - create_booking:230 - Пользователь Сергей Иванов забронировал тур 4
+2025-11-30 13:48:02 - user_service - INFO - post:374 - Тур забронирован: пользователь Сергей Иванов (ID: 3), тур 4
+2025-11-30 13:48:23 - user_service - INFO - create_booking:230 - Пользователь Андрей Карпенко забронировал тур 3
+2025-11-30 13:48:23 - user_service - INFO - post:374 - Тур забронирован: пользователь Андрей Карпенко (ID: 5), тур 3
+2025-12-05 18:07:06 - user_service - INFO - get:72 - Найдено пользователей: 5
+2025-12-05 18:07:47 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-05 18:07:47 - user_service - WARNING - get:184 - Пользователь с ID 999 не найден
+2025-12-05 18:09:55 - user_service - INFO - create_booking:230 - Пользователь Тест Тестов забронировал тур 3
+2025-12-05 18:09:55 - user_service - INFO - create_booking:230 - Пользователь Дмитрий Соколов забронировал тур 5
+2025-12-07 11:31:37 - user_service - WARNING - post:387 - Ошибка бронирования: Пользователь 1 уже забронировал тур 1
+2025-12-07 11:31:38 - user_service - INFO - delete:342 - Массовое удаление завершено: удалено 2 пользователей
+2025-12-07 11:31:44 - user_service - INFO - post:141 - Создан пользователь: Новый Тест (newtest@mail.com) ID: 3
+2025-12-07 11:31:46 - user_service - INFO - delete:263 - Пользователь удален: Тест Иванов (test1@mail.com) ID: 1
+2025-12-07 11:31:46 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 1 не найден
+2025-12-07 11:31:46 - user_service - WARNING - get:184 - Пользователь с ID 1 не найден
+2025-12-07 11:31:48 - user_service - WARNING - post:147 - Ошибка валидации при создании пользователя: Пользователь с email 'test1@mail.com' уже существует
+2025-12-07 11:31:55 - user_service - INFO - get:72 - Найдено пользователей: 2
+2025-12-07 11:31:57 - user_service - ERROR - post:151 - Неожиданная ошибка при создании пользователя: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 611, in get_json
+    rv = self.json_module.loads(data)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\json\provider.py", line 187, in loads
+    return json.loads(s, **kwargs)
+           ~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 214, in on_json_loading_failed
+    return super().on_json_loading_failed(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 645, in on_json_loading_failed
+    raise BadRequest(f"Failed to decode JSON object: {e}")
+werkzeug.exceptions.BadRequest: 400 Bad Request: Failed to decode JSON object: Expecting value: line 1 column 1 (char 0)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 96, in post
+    data = request.get_json()
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 620, in get_json
+    rv = self.on_json_loading_failed(e)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 219, in on_json_loading_failed
+    raise BadRequest() from ebr
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2025-12-07 11:31:58 - user_service - WARNING - put:236 - Ошибка валидации при обновлении пользователя 1: Email пользователя обязателен
+2025-12-07 11:32:00 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 11:32:00 - user_service - WARNING - get:184 - Пользователь с ID 999 не найден
+2025-12-07 11:32:01 - user_service - INFO - get:72 - Найдено пользователей: 1
+2025-12-07 11:32:03 - user_service - INFO - post:141 - Создан пользователь: Новый Тестовый Пользователь (newtest@example.com) ID: 1
+2025-12-07 11:32:04 - user_service - ERROR - post:151 - Неожиданная ошибка при создании пользователя: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 611, in get_json
+    rv = self.json_module.loads(data)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\json\provider.py", line 187, in loads
+    return json.loads(s, **kwargs)
+           ~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 361, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 214, in on_json_loading_failed
+    return super().on_json_loading_failed(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 645, in on_json_loading_failed
+    raise BadRequest(f"Failed to decode JSON object: {e}")
+werkzeug.exceptions.BadRequest: 400 Bad Request: Failed to decode JSON object: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 96, in post
+    data = request.get_json()
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 620, in get_json
+    rv = self.on_json_loading_failed(e)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 219, in on_json_loading_failed
+    raise BadRequest() from ebr
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2025-12-07 11:32:07 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 11:32:07 - user_service - WARNING - get:184 - Пользователь с ID 999 не найден
+2025-12-07 11:32:09 - user_service - WARNING - put:236 - Ошибка валидации при обновлении пользователя 1: Email пользователя обязателен
+2025-12-07 11:32:11 - user_service - INFO - delete:263 - Пользователь удален: Тестовый Пользователь (test@mail.com) ID: 1
+2025-12-07 11:32:11 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 1 не найден
+2025-12-07 11:32:11 - user_service - WARNING - get:184 - Пользователь с ID 1 не найден
+2025-12-07 11:32:21 - user_service - INFO - create_booking:230 - Пользователь Тестовый Пользователь забронировал тур 1
+2025-12-07 11:32:21 - user_service - INFO - post:374 - Тур забронирован: пользователь Тестовый Пользователь (ID: 1), тур 1
+2025-12-07 11:32:24 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 11:42:53 - user_service - INFO - create_booking:230 - Пользователь Тест Иванов забронировал тур 1
+2025-12-07 11:42:54 - user_service - INFO - post:374 - Тур забронирован: пользователь Тест Иванов (ID: 1), тур 1
+2025-12-07 11:42:55 - user_service - INFO - delete:342 - Массовое удаление завершено: удалено 2 пользователей
+2025-12-07 11:42:59 - user_service - INFO - post:141 - Создан пользователь: Новый Тест (newtest@mail.com) ID: 3
+2025-12-07 11:43:01 - user_service - INFO - delete:263 - Пользователь удален: Тест Иванов (test1@mail.com) ID: 1
+2025-12-07 11:43:01 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 1 не найден
+2025-12-07 11:43:01 - user_service - WARNING - get:184 - Пользователь с ID 1 не найден
+2025-12-07 11:43:04 - user_service - WARNING - post:147 - Ошибка валидации при создании пользователя: Пользователь с email 'test1@mail.com' уже существует
+2025-12-07 11:43:11 - user_service - INFO - get:72 - Найдено пользователей: 2
+2025-12-07 11:43:12 - user_service - ERROR - post:151 - Неожиданная ошибка при создании пользователя: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 611, in get_json
+    rv = self.json_module.loads(data)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\json\provider.py", line 187, in loads
+    return json.loads(s, **kwargs)
+           ~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 214, in on_json_loading_failed
+    return super().on_json_loading_failed(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 645, in on_json_loading_failed
+    raise BadRequest(f"Failed to decode JSON object: {e}")
+werkzeug.exceptions.BadRequest: 400 Bad Request: Failed to decode JSON object: Expecting value: line 1 column 1 (char 0)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 96, in post
+    data = request.get_json()
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 620, in get_json
+    rv = self.on_json_loading_failed(e)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 219, in on_json_loading_failed
+    raise BadRequest() from ebr
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2025-12-07 11:43:15 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 11:43:15 - user_service - WARNING - get:184 - Пользователь с ID 999 не найден
+2025-12-07 11:43:17 - user_service - INFO - get:72 - Найдено пользователей: 1
+2025-12-07 11:43:18 - user_service - INFO - post:141 - Создан пользователь: Новый Тестовый Пользователь (newtest@example.com) ID: 1
+2025-12-07 11:43:20 - user_service - ERROR - post:151 - Неожиданная ошибка при создании пользователя: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 611, in get_json
+    rv = self.json_module.loads(data)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\json\provider.py", line 187, in loads
+    return json.loads(s, **kwargs)
+           ~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 361, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 214, in on_json_loading_failed
+    return super().on_json_loading_failed(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 645, in on_json_loading_failed
+    raise BadRequest(f"Failed to decode JSON object: {e}")
+werkzeug.exceptions.BadRequest: 400 Bad Request: Failed to decode JSON object: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 96, in post
+    data = request.get_json()
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 620, in get_json
+    rv = self.on_json_loading_failed(e)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 219, in on_json_loading_failed
+    raise BadRequest() from ebr
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2025-12-07 11:43:23 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 11:43:23 - user_service - WARNING - get:184 - Пользователь с ID 999 не найден
+2025-12-07 11:43:25 - user_service - INFO - create_booking:230 - Пользователь Тестовый Пользователь забронировал тур 1
+2025-12-07 11:43:25 - user_service - INFO - post:374 - Тур забронирован: пользователь Тестовый Пользователь (ID: 1), тур 1
+2025-12-07 11:43:27 - user_service - INFO - delete:263 - Пользователь удален: Тестовый Пользователь (test@mail.com) ID: 1
+2025-12-07 11:43:27 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 1 не найден
+2025-12-07 11:43:27 - user_service - WARNING - get:184 - Пользователь с ID 1 не найден
+2025-12-07 11:43:40 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 11:53:17 - user_service - INFO - create_booking:230 - Пользователь Тест Иванов забронировал тур 1
+2025-12-07 11:53:18 - user_service - INFO - post:374 - Тур забронирован: пользователь Тест Иванов (ID: 1), тур 1
+2025-12-07 11:53:20 - user_service - INFO - delete:342 - Массовое удаление завершено: удалено 2 пользователей
+2025-12-07 11:53:25 - user_service - INFO - post:141 - Создан пользователь: Новый Тест (newtest@mail.com) ID: 3
+2025-12-07 11:53:27 - user_service - INFO - delete:263 - Пользователь удален: Тест Иванов (test1@mail.com) ID: 1
+2025-12-07 11:53:27 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 1 не найден
+2025-12-07 11:53:27 - user_service - WARNING - get:184 - Пользователь с ID 1 не найден
+2025-12-07 11:53:28 - user_service - WARNING - post:147 - Ошибка валидации при создании пользователя: Пользователь с email 'test1@mail.com' уже существует
+2025-12-07 11:53:35 - user_service - INFO - get:72 - Найдено пользователей: 2
+2025-12-07 11:53:36 - user_service - ERROR - post:151 - Неожиданная ошибка при создании пользователя: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 611, in get_json
+    rv = self.json_module.loads(data)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\json\provider.py", line 187, in loads
+    return json.loads(s, **kwargs)
+           ~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 214, in on_json_loading_failed
+    return super().on_json_loading_failed(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 645, in on_json_loading_failed
+    raise BadRequest(f"Failed to decode JSON object: {e}")
+werkzeug.exceptions.BadRequest: 400 Bad Request: Failed to decode JSON object: Expecting value: line 1 column 1 (char 0)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 96, in post
+    data = request.get_json()
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 620, in get_json
+    rv = self.on_json_loading_failed(e)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 219, in on_json_loading_failed
+    raise BadRequest() from ebr
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2025-12-07 11:53:39 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 11:53:39 - user_service - WARNING - get:184 - Пользователь с ID 999 не найден
+2025-12-07 11:53:40 - user_service - INFO - get:72 - Найдено пользователей: 1
+2025-12-07 11:53:42 - user_service - INFO - post:141 - Создан пользователь: Новый Тестовый Пользователь (newtest@example.com) ID: 1
+2025-12-07 11:53:43 - user_service - ERROR - post:151 - Неожиданная ошибка при создании пользователя: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 611, in get_json
+    rv = self.json_module.loads(data)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\json\provider.py", line 187, in loads
+    return json.loads(s, **kwargs)
+           ~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 361, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 214, in on_json_loading_failed
+    return super().on_json_loading_failed(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 645, in on_json_loading_failed
+    raise BadRequest(f"Failed to decode JSON object: {e}")
+werkzeug.exceptions.BadRequest: 400 Bad Request: Failed to decode JSON object: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 96, in post
+    data = request.get_json()
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 620, in get_json
+    rv = self.on_json_loading_failed(e)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 219, in on_json_loading_failed
+    raise BadRequest() from ebr
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2025-12-07 11:53:45 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 11:53:45 - user_service - WARNING - get:184 - Пользователь с ID 999 не найден
+2025-12-07 11:53:47 - user_service - INFO - put:228 - Пользователь обновлен: Обновленное Имя (test@mail.com) ID: 1
+2025-12-07 11:53:48 - user_service - INFO - create_booking:230 - Пользователь Тестовый Пользователь забронировал тур 1
+2025-12-07 11:53:48 - user_service - INFO - post:374 - Тур забронирован: пользователь Тестовый Пользователь (ID: 1), тур 1
+2025-12-07 11:53:51 - user_service - INFO - delete:263 - Пользователь удален: Тестовый Пользователь (test@mail.com) ID: 1
+2025-12-07 11:53:51 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 1 не найден
+2025-12-07 11:53:51 - user_service - WARNING - get:184 - Пользователь с ID 1 не найден
+2025-12-07 11:54:03 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 11:59:43 - user_service - INFO - create_booking:230 - Пользователь Тест Иванов забронировал тур 1
+2025-12-07 11:59:44 - user_service - INFO - post:374 - Тур забронирован: пользователь Тест Иванов (ID: 1), тур 1
+2025-12-07 11:59:46 - user_service - INFO - delete:342 - Массовое удаление завершено: удалено 2 пользователей
+2025-12-07 11:59:50 - user_service - INFO - post:141 - Создан пользователь: Новый Тест (newtest@mail.com) ID: 3
+2025-12-07 11:59:52 - user_service - INFO - delete:263 - Пользователь удален: Тест Иванов (test1@mail.com) ID: 1
+2025-12-07 11:59:52 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 1 не найден
+2025-12-07 11:59:52 - user_service - WARNING - get:184 - Пользователь с ID 1 не найден
+2025-12-07 11:59:55 - user_service - WARNING - post:147 - Ошибка валидации при создании пользователя: Пользователь с email 'test1@mail.com' уже существует
+2025-12-07 12:00:01 - user_service - INFO - get:72 - Найдено пользователей: 2
+2025-12-07 12:00:02 - user_service - ERROR - post:151 - Неожиданная ошибка при создании пользователя: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 611, in get_json
+    rv = self.json_module.loads(data)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\json\provider.py", line 187, in loads
+    return json.loads(s, **kwargs)
+           ~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 214, in on_json_loading_failed
+    return super().on_json_loading_failed(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 645, in on_json_loading_failed
+    raise BadRequest(f"Failed to decode JSON object: {e}")
+werkzeug.exceptions.BadRequest: 400 Bad Request: Failed to decode JSON object: Expecting value: line 1 column 1 (char 0)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 96, in post
+    data = request.get_json()
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 620, in get_json
+    rv = self.on_json_loading_failed(e)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 219, in on_json_loading_failed
+    raise BadRequest() from ebr
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2025-12-07 12:00:06 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 12:00:06 - user_service - WARNING - get:184 - Пользователь с ID 999 не найден
+2025-12-07 12:00:08 - user_service - INFO - get:72 - Найдено пользователей: 1
+2025-12-07 12:00:09 - user_service - INFO - post:141 - Создан пользователь: Новый Тестовый Пользователь (newtest@example.com) ID: 1
+2025-12-07 12:00:10 - user_service - ERROR - post:151 - Неожиданная ошибка при создании пользователя: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 611, in get_json
+    rv = self.json_module.loads(data)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\json\provider.py", line 187, in loads
+    return json.loads(s, **kwargs)
+           ~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 361, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 214, in on_json_loading_failed
+    return super().on_json_loading_failed(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 645, in on_json_loading_failed
+    raise BadRequest(f"Failed to decode JSON object: {e}")
+werkzeug.exceptions.BadRequest: 400 Bad Request: Failed to decode JSON object: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 96, in post
+    data = request.get_json()
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 620, in get_json
+    rv = self.on_json_loading_failed(e)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 219, in on_json_loading_failed
+    raise BadRequest() from ebr
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2025-12-07 12:00:13 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 12:00:13 - user_service - WARNING - get:184 - Пользователь с ID 999 не найден
+2025-12-07 12:00:15 - user_service - INFO - put:228 - Пользователь обновлен: Обновленное Имя (test@mail.com) ID: 1
+2025-12-07 12:00:16 - user_service - INFO - create_booking:230 - Пользователь Тестовый Пользователь забронировал тур 1
+2025-12-07 12:00:16 - user_service - INFO - post:374 - Тур забронирован: пользователь Тестовый Пользователь (ID: 1), тур 1
+2025-12-07 12:00:18 - user_service - INFO - delete:263 - Пользователь удален: Тестовый Пользователь (test@mail.com) ID: 1
+2025-12-07 12:00:18 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 1 не найден
+2025-12-07 12:00:18 - user_service - WARNING - get:184 - Пользователь с ID 1 не найден
+2025-12-07 12:00:31 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 12:04:02 - user_service - INFO - create_booking:230 - Пользователь Тест Иванов забронировал тур 1
+2025-12-07 12:04:02 - user_service - INFO - post:374 - Тур забронирован: пользователь Тест Иванов (ID: 1), тур 1
+2025-12-07 12:04:04 - user_service - INFO - delete:342 - Массовое удаление завершено: удалено 2 пользователей
+2025-12-07 12:04:10 - user_service - INFO - post:141 - Создан пользователь: Новый Тест (newtest@mail.com) ID: 3
+2025-12-07 12:04:12 - user_service - INFO - delete:263 - Пользователь удален: Тест Иванов (test1@mail.com) ID: 1
+2025-12-07 12:04:12 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 1 не найден
+2025-12-07 12:04:12 - user_service - WARNING - get:184 - Пользователь с ID 1 не найден
+2025-12-07 12:04:14 - user_service - WARNING - post:147 - Ошибка валидации при создании пользователя: Пользователь с email 'test1@mail.com' уже существует
+2025-12-07 12:04:19 - user_service - INFO - get:72 - Найдено пользователей: 2
+2025-12-07 12:04:21 - user_service - ERROR - post:151 - Неожиданная ошибка при создании пользователя: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 611, in get_json
+    rv = self.json_module.loads(data)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\json\provider.py", line 187, in loads
+    return json.loads(s, **kwargs)
+           ~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 214, in on_json_loading_failed
+    return super().on_json_loading_failed(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 645, in on_json_loading_failed
+    raise BadRequest(f"Failed to decode JSON object: {e}")
+werkzeug.exceptions.BadRequest: 400 Bad Request: Failed to decode JSON object: Expecting value: line 1 column 1 (char 0)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 96, in post
+    data = request.get_json()
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 620, in get_json
+    rv = self.on_json_loading_failed(e)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 219, in on_json_loading_failed
+    raise BadRequest() from ebr
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2025-12-07 12:04:24 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 12:04:24 - user_service - WARNING - get:184 - Пользователь с ID 999 не найден
+2025-12-07 12:04:25 - user_service - INFO - get:72 - Найдено пользователей: 1
+2025-12-07 12:04:28 - user_service - INFO - post:141 - Создан пользователь: Новый Тестовый Пользователь (newtest@example.com) ID: 1
+2025-12-07 12:04:30 - user_service - ERROR - post:151 - Неожиданная ошибка при создании пользователя: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 611, in get_json
+    rv = self.json_module.loads(data)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\json\provider.py", line 187, in loads
+    return json.loads(s, **kwargs)
+           ~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 361, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 214, in on_json_loading_failed
+    return super().on_json_loading_failed(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 645, in on_json_loading_failed
+    raise BadRequest(f"Failed to decode JSON object: {e}")
+werkzeug.exceptions.BadRequest: 400 Bad Request: Failed to decode JSON object: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 96, in post
+    data = request.get_json()
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 620, in get_json
+    rv = self.on_json_loading_failed(e)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 219, in on_json_loading_failed
+    raise BadRequest() from ebr
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2025-12-07 12:04:33 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 12:04:33 - user_service - WARNING - get:184 - Пользователь с ID 999 не найден
+2025-12-07 12:04:34 - user_service - INFO - put:228 - Пользователь обновлен: Обновленное Имя (test@mail.com) ID: 1
+2025-12-07 12:04:36 - user_service - INFO - delete:263 - Пользователь удален: Тестовый Пользователь (test@mail.com) ID: 1
+2025-12-07 12:04:36 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 1 не найден
+2025-12-07 12:04:36 - user_service - WARNING - get:184 - Пользователь с ID 1 не найден
+2025-12-07 12:04:45 - user_service - INFO - create_booking:230 - Пользователь Тестовый Пользователь забронировал тур 1
+2025-12-07 12:04:45 - user_service - INFO - post:374 - Тур забронирован: пользователь Тестовый Пользователь (ID: 1), тур 1
+2025-12-07 12:04:48 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 12:09:40 - user_service - INFO - create_booking:230 - Пользователь Тест Иванов забронировал тур 1
+2025-12-07 12:09:40 - user_service - INFO - post:374 - Тур забронирован: пользователь Тест Иванов (ID: 1), тур 1
+2025-12-07 12:09:41 - user_service - INFO - delete:342 - Массовое удаление завершено: удалено 2 пользователей
+2025-12-07 12:09:46 - user_service - INFO - post:141 - Создан пользователь: Новый Тест (newtest@mail.com) ID: 3
+2025-12-07 12:09:47 - user_service - INFO - delete:263 - Пользователь удален: Тест Иванов (test1@mail.com) ID: 1
+2025-12-07 12:09:47 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 1 не найден
+2025-12-07 12:09:47 - user_service - WARNING - get:184 - Пользователь с ID 1 не найден
+2025-12-07 12:09:51 - user_service - WARNING - post:147 - Ошибка валидации при создании пользователя: Пользователь с email 'test1@mail.com' уже существует
+2025-12-07 12:09:56 - user_service - INFO - get:72 - Найдено пользователей: 2
+2025-12-07 12:09:58 - user_service - ERROR - post:151 - Неожиданная ошибка при создании пользователя: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 611, in get_json
+    rv = self.json_module.loads(data)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\json\provider.py", line 187, in loads
+    return json.loads(s, **kwargs)
+           ~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 214, in on_json_loading_failed
+    return super().on_json_loading_failed(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 645, in on_json_loading_failed
+    raise BadRequest(f"Failed to decode JSON object: {e}")
+werkzeug.exceptions.BadRequest: 400 Bad Request: Failed to decode JSON object: Expecting value: line 1 column 1 (char 0)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 96, in post
+    data = request.get_json()
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 620, in get_json
+    rv = self.on_json_loading_failed(e)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 219, in on_json_loading_failed
+    raise BadRequest() from ebr
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2025-12-07 12:10:01 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 12:10:01 - user_service - WARNING - get:184 - Пользователь с ID 999 не найден
+2025-12-07 12:10:02 - user_service - INFO - get:72 - Найдено пользователей: 1
+2025-12-07 12:10:04 - user_service - INFO - post:141 - Создан пользователь: Новый Тестовый Пользователь (newtest@example.com) ID: 1
+2025-12-07 12:10:05 - user_service - ERROR - post:151 - Неожиданная ошибка при создании пользователя: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 611, in get_json
+    rv = self.json_module.loads(data)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\json\provider.py", line 187, in loads
+    return json.loads(s, **kwargs)
+           ~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 361, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 214, in on_json_loading_failed
+    return super().on_json_loading_failed(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 645, in on_json_loading_failed
+    raise BadRequest(f"Failed to decode JSON object: {e}")
+werkzeug.exceptions.BadRequest: 400 Bad Request: Failed to decode JSON object: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 96, in post
+    data = request.get_json()
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 620, in get_json
+    rv = self.on_json_loading_failed(e)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 219, in on_json_loading_failed
+    raise BadRequest() from ebr
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2025-12-07 12:10:08 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-07 12:10:08 - user_service - WARNING - get:184 - Пользователь с ID 999 не найден
+2025-12-07 12:10:10 - user_service - INFO - put:228 - Пользователь обновлен: Обновленное Имя (test@mail.com) ID: 1
+2025-12-07 12:10:12 - user_service - INFO - delete:263 - Пользователь удален: Тестовый Пользователь (test@mail.com) ID: 1
+2025-12-07 12:10:12 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 1 не найден
+2025-12-07 12:10:12 - user_service - WARNING - get:184 - Пользователь с ID 1 не найден
+2025-12-07 12:10:23 - user_service - INFO - create_booking:230 - Пользователь Тестовый Пользователь забронировал тур 1
+2025-12-07 12:10:23 - user_service - INFO - post:374 - Тур забронирован: пользователь Тестовый Пользователь (ID: 1), тур 1
+2025-12-07 12:10:26 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-14 14:03:16 - user_service - INFO - get:72 - Найдено пользователей: 3
+2025-12-14 14:05:22 - user_service - INFO - post:141 - Создан пользователь: Дмитрий Соколов (dmitrii@gmail.com) ID: 4
+2025-12-14 14:09:25 - user_service - INFO - put:228 - Пользователь обновлен: Мария Иванова (mariaII@gmail.com) ID: 2
+2025-12-14 14:35:22 - user_service - INFO - create_booking:230 - Пользователь Иван Иванов забронировал тур 5
+2025-12-14 14:35:22 - user_service - INFO - post:374 - Тур забронирован: пользователь Иван Иванов (ID: 1), тур 5
+2025-12-14 14:37:26 - user_service - INFO - delete:263 - Пользователь удален: Алексей Сидоров (alex@mail.com) ID: 3
+2025-12-14 14:38:50 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 999 не найден
+2025-12-14 14:38:50 - user_service - WARNING - get:184 - Пользователь с ID 999 не найден
+2025-12-14 14:40:29 - user_service - INFO - post:141 - Создан пользователь: Александр Иванов (test@mail.com) ID: 5
+2025-12-14 14:40:32 - user_service - WARNING - post:147 - Ошибка валидации при создании пользователя: Пользователь с email 'test@mail.com' уже существует
+2025-12-14 14:42:19 - user_service - ERROR - post:151 - Неожиданная ошибка при создании пользователя: 400 Bad Request: Failed to decode JSON object: Expecting value: line 1 column 1 (char 0)
+Traceback (most recent call last):
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 611, in get_json
+    rv = self.json_module.loads(data)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\json\provider.py", line 187, in loads
+    return json.loads(s, **kwargs)
+           ~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\json\decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Админ\Desktop\Курсач\resources\user_resources.py", line 96, in post
+    data = request.get_json()
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 620, in get_json
+    rv = self.on_json_loading_failed(e)
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\flask\wrappers.py", line 214, in on_json_loading_failed
+    return super().on_json_loading_failed(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Админ\AppData\Local\Programs\Python\Python314\Lib\site-packages\werkzeug\wrappers\request.py", line 645, in on_json_loading_failed
+    raise BadRequest(f"Failed to decode JSON object: {e}")
+werkzeug.exceptions.BadRequest: 400 Bad Request: Failed to decode JSON object: Expecting value: line 1 column 1 (char 0)
+2025-12-14 14:45:05 - user_service - INFO - create_booking:230 - Пользователь Иван Иванов забронировал тур 2
+2025-12-14 14:45:05 - user_service - INFO - post:374 - Тур забронирован: пользователь Иван Иванов (ID: 1), тур 2
+2025-12-14 14:45:09 - user_service - WARNING - post:387 - Ошибка бронирования: Пользователь 1 уже забронировал тур 2
+2025-12-14 14:45:40 - user_service - INFO - create_booking:230 - Пользователь Мария Иванова забронировал тур 2
+2025-12-14 14:45:40 - user_service - INFO - post:374 - Тур забронирован: пользователь Мария Иванова (ID: 2), тур 2
+2025-12-14 14:45:42 - user_service - WARNING - get_user_by_id:307 - Пользователь с ID 3 не найден
+2025-12-14 14:45:42 - user_service - WARNING - post:387 - Ошибка бронирования: Пользователь с ID 3 не найден
+2025-12-14 14:45:47 - user_service - INFO - create_booking:230 - Пользователь Дмитрий Соколов забронировал тур 2
+2025-12-14 14:45:47 - user_service - INFO - post:374 - Тур забронирован: пользователь Дмитрий Соколов (ID: 4), тур 2
+2025-12-14 14:45:49 - user_service - WARNING - post:387 - Ошибка бронирования: В туре 2 нет доступных мест. Доступно: 0
