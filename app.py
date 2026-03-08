@@ -33,6 +33,7 @@ from resources.destination_resources import DestinationListResource, Destination
 from resources.tour_resources import TourListResource, TourResource, AvailableToursResource
 from services.tourism_services import UserService, TourService, DestinationService, BookingService
 
+
 def setup_logging():
     """
     Настраивает логирование из YAML конфигурационного файла.
