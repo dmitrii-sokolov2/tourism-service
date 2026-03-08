@@ -39,6 +39,7 @@ class User(db.Model):
         email (str): Email (уникальный, обязательно) 
         phone (str): Телефонный номер
         created_at (datetime): Дата создания
+        password_hash (stf): Хэш пароля
         booked_tours (list): Список забронированных туров
         
     Методы:
@@ -55,9 +56,11 @@ class User(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     phone = db.Column(db.String(20))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    password_hash = db.Column(db.String(255), nullable=False)
     
     # Отношение многие-ко-многим с Tour
     booked_tours = db.relationship('Tour', secondary=user_tour, backref=db.backref('users', lazy=True))
+    refresh_tokens = db.relationship('RefreshToken', back_populates='user')
     
     def to_dict(self):
         """
@@ -211,3 +214,16 @@ class Tour(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'users_count': len(self.users)
         }
+
+class RefreshToken(db.Model):
+    __tablename__ = "refresh_tokens"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user = db.relationship("User", back_populates="refresh_tokens")
+
+    token_hash = db.Column(db.String(255), nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    

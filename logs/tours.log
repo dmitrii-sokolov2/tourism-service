@@ -101,3 +101,9 @@ with app.app_context(). See the documentation for more information.
 2025-12-14 14:45:47 - tour_service - INFO - decrease_available_slots:152 - Уменьшены доступные места в туре 2: 1 -> 0
 2025-12-14 14:45:47 - tour_service - INFO - create_booking:231 - Тур 2 забронирован пользователем Дмитрий Соколов
 2025-12-14 15:30:19 - tour_service - INFO - get:69 - Найдено туров: 5
+2026-02-24 22:29:03 - tour_service - INFO - get:69 - Найдено туров: 3
+2026-03-06 03:14:01 - tour_service - INFO - decrease_available_slots:152 - Уменьшены доступные места в туре 2: 3 -> 2
+2026-03-06 03:14:01 - tour_service - INFO - create_booking:231 - Тур 2 забронирован пользователем Jack
+2026-03-06 03:14:01 - tour_service - INFO - decrease_available_slots:152 - Уменьшены доступные места в туре 3: 8 -> 7
+2026-03-06 03:14:01 - tour_service - INFO - create_booking:231 - Тур 3 забронирован пользователем Jack
+2026-03-06 03:51:32 - tour_service - INFO - get:69 - Найдено туров: 3
