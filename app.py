@@ -13,7 +13,7 @@
 Импортирует все основные классы системы для единой документации.
 """
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Blueprint
 from flask_restful import Api
 import os
 import logging
@@ -32,131 +32,32 @@ from resources.user_resources import UserListResource, UserResource, UserBulkDel
 from resources.destination_resources import DestinationListResource, DestinationResource
 from resources.tour_resources import TourListResource, TourResource, AvailableToursResource
 from services.tourism_services import UserService, TourService, DestinationService, BookingService
-
-
-def setup_logging():
-    """
-    Настраивает логирование из YAML конфигурационного файла.
-    
-    Returns:
-        logging.Logger: Настроенный логгер
-        
-    Raises:
-        FileNotFoundError: Если файл конфигурации не найден
-        
-    Пример:
-        >>> logger = setup_logging()
-        >>> logger.info("Логирование настроено")
-    """
-    try:
-        with open('logging_config.yaml', 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-        logging.config.dictConfig(config)
-        logger = logging.getLogger(__name__)
-        logger.info("✅ Логирование настроено из YAML конфигурации")
-        return logger
-    except FileNotFoundError:
-        logging.basicConfig(
-            level=logging.INFO, 
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
-        logger = logging.getLogger(__name__)
-        logger.warning("⚠️ Файл конфигурации логирования не найден, используется базовая настройка")
-        return logger
+from errors.handlers import register_error_handlers
+from api.v1.routes.auth_routes import auth_bp
+from api.v1.routes.health_routes import health_bp
+from api.v1.routes.stats_routes import stats_bp
+from api.v1.routes.booking_routes import booking_bp
+# from api.v1.destinations_routes import destinations_bp
+from core.logging_config import setup_logging
 
 # Инициализация приложения
 app = Flask(__name__)
 app.config.from_object(Config)
+register_error_handlers(app)
 
 # Создаем папку data если её нет
 if not os.path.exists('data'):
     os.makedirs('data')
 
 db.init_app(app)
+
+api_v1_bp = Blueprint('api_v1', __name__, url_prefix='/api/v1/') #!
+api_v1 = Api(api_v1_bp) #!
+
 api = Api(app)
 
 # Настраиваем логирование ПЕРЕД использованием логгера
 logger = setup_logging()
-
-# Кастомный обработчик ошибок в формате Problem Details
-@app.errorhandler(HTTPException)
-def handle_exception(e):
-    """
-    Обрабатывает HTTP исключения и возвращает ответ в формате Problem Details.
-    
-    Args:
-        e (HTTPException): Исключение для обработки
-        
-    Returns:
-        tuple: JSON ответ и HTTP статус код
-        
-    Пример:
-        При 404 ошибке возвращает:
-        {
-            "type": "about:blank",
-            "title": "Not Found", 
-            "status": 404,
-            "detail": "The requested URL was not found",
-            "instance": "/api/users/999"
-        }
-    """
-    logger.error(f"HTTP Error {e.code}: {e.description}")
-    
-    response = {
-        "type": "about:blank",
-        "title": e.name,
-        "status": e.code,
-        "detail": e.description,
-        "instance": request.path
-    }
-    
-    return jsonify(response), e.code
-
-@app.errorhandler(TourismBaseException)
-def handle_custom_exception(e):
-    """
-    Обрабатывает пользовательские исключения туристического агентства.
-    
-    Args:
-        e (TourismBaseException): Пользовательское исключение
-        
-    Returns:
-        tuple: JSON ответ и HTTP статус код
-    """
-    logger.error(f"Custom exception {e.status_code}: {e.message}")
-    
-    response = {
-        "type": "about:blank",
-        "title": e.__class__.__name__,
-        "status": e.status_code,
-        "detail": e.message,
-        "instance": request.path
-    }
-    
-    return jsonify(response), e.status_code
-
-@app.errorhandler(Exception)
-def handle_unexpected_error(e):
-    """
-    Обрабатывает непредвиденные ошибки и возвращает ответ в формате Problem Details.
-    
-    Args:
-        e (Exception): Непредвиденное исключение
-        
-    Returns:
-        tuple: JSON ответ и HTTP статус код 500
-    """
-    logger.error(f"Unexpected error: {str(e)}", exc_info=True)
-    
-    response = {
-        "type": "about:blank",
-        "title": "Internal Server Error",
-        "status": 500,
-        "detail": "An unexpected error occurred",
-        "instance": request.path
-    }
-    
-    return jsonify(response), 500
 
 @app.route('/')
 def hello():
@@ -189,20 +90,13 @@ def hello():
             "health": "/api/health"
         }
     })
-
-@app.route('/api/health')
-def health_check():
-    """
-    Эндпоинт проверки здоровья сервиса.
     
-    Returns:
-        dict: Статус сервиса и подключения к БД
-        
-    Пример ответа:
-        {"status": "healthy", "database": "connected"}
-    """
-    logger.debug("GET /api/health - проверка здоровья")
-    return jsonify({"status": "healthy", "database": "connected"})
+api_v1_bp.register_blueprint(auth_bp, url_prefix='/auth')
+api_v1_bp.register_blueprint(booking_bp, url_prefix='/bookings')
+api_v1_bp.register_blueprint(health_bp)
+api_v1_bp.register_blueprint(stats_bp, url_prefix='/stats')
+# api_v1_bp.register_blueprint(destinations_bp, url_prefix='/destinations')
+app.register_blueprint(api_v1_bp) #!
 
 def add_sample_data():
     """
@@ -280,80 +174,18 @@ def validate_architecture():
         logger.info(f"  ✓ {principle}: {description}")
 
 # Регистрация API ресурсов
-api.add_resource(UserListResource, '/api/users')
-api.add_resource(UserResource, '/api/users/<int:id>')
-api.add_resource(UserBulkDeleteResource, '/api/users/bulk-delete')
-api.add_resource(UserBookTourResource, '/api/users/<int:user_id>/book-tour/<int:tour_id>')
+api_v1.add_resource(UserListResource, '/users')
+api_v1.add_resource(UserResource, '/users/<int:id>')
+api_v1.add_resource(UserBulkDeleteResource, '/users/bulk-delete')
+api_v1.add_resource(UserBookTourResource, '/users/<int:user_id>/book-tour/<int:tour_id>')
 
 api.add_resource(DestinationListResource, '/api/destinations')
 api.add_resource(DestinationResource, '/api/destinations/<int:id>')
 
-api.add_resource(TourListResource, '/api/tours')
-api.add_resource(TourResource, '/api/tours/<int:id>')
-api.add_resource(AvailableToursResource, '/api/tours/available')
-
-@app.route('/api/stats/threads')
-def thread_stats():
-    """Статистика работы потоков"""
-    try:
-        import threading
-        return jsonify({
-            "thread_pool_workers": 5,
-            "active_threads": threading.active_count(),
-            "current_thread": threading.current_thread().name,
-            "message": "Многопоточная архитектура активна",
-            "status": "success"
-        })
-    except Exception as e:
-        logger.error(f"Error in thread stats: {str(e)}")
-        return jsonify({
-            "status": "error",
-            "message": "Thread statistics temporarily unavailable",
-            "active_threads": "unknown"
-        })
-
-@app.route('/api/bookings/bulk', methods=['POST'])
-def bulk_bookings():
-    """Упрощенное массовое бронирование"""
-    try:
-        data = request.get_json()
-        bookings = data.get('bookings', [])
-        
-        results = []
-        for booking in bookings:
-            try:
-                # Используем синхронное бронирование для надежности
-                user_id = booking['user_id']
-                tour_id = booking['tour_id']
-                
-                from services.tourism_services import UserService, TourService, BookingService
-                user = UserService.get_user_by_id(user_id)
-                tour = TourService.get_tour_by_id(tour_id)
-                
-                result = BookingService.create_booking(user, tour)
-                db.session.commit()
-                
-                results.append({
-                    "status": "success", 
-                    "user_id": user_id, 
-                    "tour_id": tour_id,
-                    "message": "Бронирование успешно"
-                })
-            except Exception as e:
-                db.session.rollback()
-                results.append({
-                    "status": "error", 
-                    "user_id": booking.get('user_id'), 
-                    "tour_id": booking.get('tour_id'),
-                    "error": str(e)
-                })
-        
-        return jsonify({"results": results})
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500    
-    
+api_v1.add_resource(TourListResource, '/tours')
+api_v1.add_resource(TourResource, '/tours/<int:id>')
+api_v1.add_resource(AvailableToursResource, '/tours/available')
+      
 @app.route('/api/destinations/coordinates')
 def get_destinations_coordinates():
     """Возвращает города с координатами для глобуса"""
@@ -403,6 +235,7 @@ def get_destinations_coordinates():
             {'id': 3, 'name': 'Бали', 'country': 'Индонезия', 'lat': -8.3405, 'lng': 115.0920, 'tours': 8, 'price': '45000'}
         ]
         return jsonify(test_data)
+        
 if __name__ == '__main__':
     """
     Точка входа приложения - запуск REST API сервера.
@@ -436,9 +269,13 @@ if __name__ == '__main__':
     print("  GET  /api/tours - все туры")
     print("  GET  /api/tours/available - только доступные туры")
     print("  POST /api/users/<id>/book-tour/<id> - бронирование тура")
+    print("  POST /api/v1/auth/register - регистрация пользователя") #!
+    print("  POST /api/v1/auth/login - авторизация существующего пользователя") #!
     print("\n🔧 Для тестирования ошибок:")
     print("  GET  /api/users/999 - несуществующий пользователь (404)")
     print("  POST /api/users (с существующим email) - дубликат (409)")
     print("\n📋 Логи сохраняются в папке logs/")
+    
+    print(app.url_map)
     
     app.run(host='0.0.0.0', port=5000, debug=True)

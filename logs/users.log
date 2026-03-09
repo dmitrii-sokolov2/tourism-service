@@ -736,3 +736,10 @@ werkzeug.exceptions.BadRequest: 400 Bad Request: Failed to decode JSON object: E
 2025-12-14 14:45:47 - user_service - INFO - create_booking:230 - Пользователь Дмитрий Соколов забронировал тур 2
 2025-12-14 14:45:47 - user_service - INFO - post:374 - Тур забронирован: пользователь Дмитрий Соколов (ID: 4), тур 2
 2025-12-14 14:45:49 - user_service - WARNING - post:387 - Ошибка бронирования: В туре 2 нет доступных мест. Доступно: 0
+2026-03-06 03:14:01 - user_service - INFO - create_booking:230 - Пользователь Jack забронировал тур 2
+2026-03-06 03:14:01 - user_service - INFO - create_booking:230 - Пользователь Jack забронировал тур 3
+2026-03-06 03:49:48 - user_service - INFO - get:72 - Найдено пользователей: 10
+2026-03-06 03:50:36 - user_service - INFO - get:72 - Найдено пользователей: 10
+2026-03-07 03:54:59 - user_service - INFO - get:72 - Найдено пользователей: 10
+2026-03-08 18:51:24 - user_service - WARNING - post:145 - Ошибка валидации данных пользователя: [{'field': '', 'message': "Additional properties are not allowed ('password' was unexpected)", 'value': {'name': 'Jason', 'phone': '129292939329', 'email': 'hahaha@gmail.com', 'password': 'qwerty'}}]
+2026-03-08 18:51:29 - user_service - INFO - get:72 - Найдено пользователей: 11
