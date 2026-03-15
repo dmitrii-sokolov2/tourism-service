@@ -1,9 +1,9 @@
 from pydantic import BaseModel, EmailStr, field_validator
-
+from typing import Optional 
 class UserRegisterSchema(BaseModel):
     name: str
     email: EmailStr
-    phone: str
+    phone: Optional[str] = None 
     password: str
     
     @field_validator("email")

@@ -1,18 +1,3 @@
-"""
-Модуль REST API сервиса для туристического агентства.
-
-ВЕРСИЯ 3.0 - С РАСШИРЕННОЙ СИСТЕМОЙ ИСКЛЮЧЕНИЙ И ЛОГИРОВАНИЕМ
-
-Основные компоненты:
-- Flask приложение с REST API
-- Обработка исключений в формате Problem Details
-- Логирование операций
-- Инициализация базы данных
-- Добавление тестовых данных
-
-Импортирует все основные классы системы для единой документации.
-"""
-
 from flask import Flask, jsonify, request, Blueprint
 from flask_restful import Api
 import os
@@ -39,6 +24,7 @@ from api.v1.routes.stats_routes import stats_bp
 from api.v1.routes.booking_routes import booking_bp
 # from api.v1.destinations_routes import destinations_bp
 from core.logging_config import setup_logging
+from flask import send_from_directory
 
 # Инициализация приложения
 app = Flask(__name__)
@@ -60,25 +46,13 @@ api = Api(app)
 logger = setup_logging()
 
 @app.route('/')
-def hello():
-    """
-    Корневой эндпоинт API с информацией о сервисе.
-    
-    Returns:
-        dict: Информация о сервисе и доступные эндпоинты
-        
-    Пример ответа:
-        {
-            "message": "Tourism REST Service",
-            "version": "3.0", 
-            "endpoints": {
-                "users": "/api/users",
-                "destinations": "/api/destinations",
-                "tours": "/api/tours"
-            }
-        }
-    """
-    logger.info("GET / - корневой запрос")
+def index():
+    logger.info("GET / - открываем глобус")
+    return send_from_directory('static', 'index.html')
+
+@app.route('/api-info')
+def api_info():
+    logger.info("GET /api-info - информация об API")
     return jsonify({
         "message": "Tourism REST Service", 
         "version": "3.0",
@@ -99,20 +73,6 @@ api_v1_bp.register_blueprint(stats_bp, url_prefix='/stats')
 app.register_blueprint(api_v1_bp) #!
 
 def add_sample_data():
-    """
-    Добавляет тестовые данные в базу данных при первом запуске.
-    
-    Создает:
-    - 3 тестовых направления (Париж, Токио, Бали)
-    - 3 тестовых пользователя
-    - 3 тестовых тура
-    
-    Returns:
-        None
-        
-    Raises:
-        Exception: При ошибках добавления данных
-    """
     try:
         if db.session.execute(select(User)).first():
             logger.info("База данных уже содержит данные, пропускаем добавление тестовых данных")
@@ -154,12 +114,6 @@ def add_sample_data():
         db.session.rollback()
 
 def validate_architecture():
-    """
-    Проверяет соблюдение архитектурных принципов и логирует результаты.
-    
-    Returns:
-        None
-    """
     principles = {
         "high_cohesion": "Сервисы имеют одну четкую ответственность",
         "low_coupling": "Ресурсы используют сервисы вместо прямой логики", 
@@ -188,7 +142,6 @@ api_v1.add_resource(AvailableToursResource, '/tours/available')
       
 @app.route('/api/destinations/coordinates')
 def get_destinations_coordinates():
-    """Возвращает города с координатами для глобуса"""
     try:
         # Получаем все направления
         destinations = Destination.query.all()
@@ -237,18 +190,6 @@ def get_destinations_coordinates():
         return jsonify(test_data)
         
 if __name__ == '__main__':
-    """
-    Точка входа приложения - запуск REST API сервера.
-    
-    Выполняет:
-    - Инициализацию базы данных
-    - Добавление тестовых данных
-    - Проверку архитектурных принципов
-    - Запуск Flask сервера
-    
-    Пример использования:
-        python app.py
-    """
     print("🚀 Запуск туристического REST API...")
     print("📁 Модульная архитектура с обработкой исключений и логированием")
     

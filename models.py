@@ -1,20 +1,3 @@
-"""
-Модуль моделей базы данных для туристического агентства.
-
-Содержит SQLAlchemy модели:
-- User: Пользователи системы
-- Destination: Туристические направления  
-- Tour: Конкретные туры с датами
-- user_tour: Таблица связи многие-ко-многим (User-Tour)
-
-Отношения:
-- User <-> Tour: Many-to-Many (через user_tour)
-- Destination -> Tour: One-to-Many
-
-Автор: [Соколов Дмитрий]
-Версия: 3.0
-"""
-
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
@@ -30,25 +13,6 @@ user_tour = db.Table('user_tour',
 )
 
 class User(db.Model):
-    """
-    Модель пользователя системы.
-    
-    Атрибуты:
-        id (int): Первичный ключ
-        name (str): Имя пользователя (обязательно)
-        email (str): Email (уникальный, обязательно) 
-        phone (str): Телефонный номер
-        created_at (datetime): Дата создания
-        password_hash (stf): Хэш пароля
-        booked_tours (list): Список забронированных туров
-        
-    Методы:
-        to_dict(): Преобразует объект в словарь
-        
-    Пример:
-        user = User(name="Иван", email="ivan@mail.com")
-    """
-    
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -63,23 +27,6 @@ class User(db.Model):
     refresh_tokens = db.relationship('RefreshToken', back_populates='user')
     
     def to_dict(self):
-        """
-        Преобразует объект пользователя в словарь.
-        
-        Returns:
-            dict: Словарь с данными пользователя
-            
-        Пример:
-            >>> user.to_dict()
-            {
-                'id': 1,
-                'name': 'Иван Иванов',
-                'email': 'ivan@mail.com',
-                'phone': '+79991234567',
-                'created_at': '2024-01-15T10:30:00',
-                'booked_tours_count': 2
-            }
-        """
         return {
             'id': self.id,
             'name': self.name,
@@ -89,24 +36,7 @@ class User(db.Model):
             'booked_tours_count': len(self.booked_tours)
         }
 
-class Destination(db.Model):
-    """
-    Модель туристического направления.
-    
-    Атрибуты:
-        id (int): Первичный ключ
-        name (str): Название направления (обязательно)
-        country (str): Страна (обязательно)
-        description (str): Описание направления
-        price (float): Стоимость тура
-        duration_days (int): Продолжительность в днях
-        created_at (datetime): Дата создания
-        tours (list): Список связанных туров
-        
-    Методы:
-        to_dict(): Преобразует объект в словарь
-    """
-    
+class Destination(db.Model):  
     __tablename__ = 'destinations'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -125,25 +55,6 @@ class Destination(db.Model):
     tours = db.relationship('Tour', backref='destination', lazy=True, cascade='all, delete-orphan')
     
     def to_dict(self):
-        """
-        Преобразует объект направления в словарь.
-        
-        Returns:
-            dict: Словарь с данными направления
-            
-        Пример:
-            >>> destination.to_dict()
-            {
-                'id': 1,
-                'name': 'Париж',
-                'country': 'Франция', 
-                'description': 'Город любви',
-                'price': 1200.0,
-                'duration_days': 5,
-                'created_at': '2024-01-15T10:30:00',
-                'tours_count': 3
-            }
-        """
         return {
             'id': self.id,
             'name': self.name,
@@ -156,22 +67,6 @@ class Destination(db.Model):
         }
 
 class Tour(db.Model):
-    """
-    Модель конкретного тура с датами и доступными местами.
-    
-    Атрибуты:
-        id (int): Первичный ключ
-        destination_id (int): ID направления (внешний ключ)
-        start_date (str): Дата начала тура (обязательно)
-        end_date (str): Дата окончания тура (обязательно)
-        available_slots (int): Доступные места
-        is_active (bool): Активен ли тур
-        created_at (datetime): Дата создания
-        
-    Методы:
-        to_dict(): Преобразует объект в словарь
-    """
-    
     __tablename__ = 'tours'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -183,26 +78,6 @@ class Tour(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
-        """
-        Преобразует объект тура в словарь.
-        
-        Returns:
-            dict: Словарь с данными тура
-            
-        Пример:
-            >>> tour.to_dict()
-            {
-                'id': 1,
-                'destination_id': 1,
-                'destination_name': 'Париж',
-                'start_date': '2024-12-01',
-                'end_date': '2024-12-05', 
-                'available_slots': 5,
-                'is_active': True,
-                'created_at': '2024-01-15T10:30:00',
-                'users_count': 2
-            }
-        """
         return {
             'id': self.id,
             'destination_id': self.destination_id,

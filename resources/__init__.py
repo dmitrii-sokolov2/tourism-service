@@ -1,8 +1,3 @@
-"""
-Пакет API ресурсов для туристического REST API.
-
-Содержит все ресурсы (endpoints) системы.
-"""
 
 from .user_resources import (
     UserListResource, UserResource, UserBulkDeleteResource, UserBookTourResource

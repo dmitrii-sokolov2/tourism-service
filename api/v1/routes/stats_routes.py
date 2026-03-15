@@ -9,7 +9,6 @@ logger = setup_logging()
 
 @stats_bp.route('/threads')
 def thread_stats():
-    """Статистика работы потоков"""
     try:
         import threading
         return jsonify({

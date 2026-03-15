@@ -3,19 +3,6 @@ import logging.config
 import yaml
 
 def setup_logging():
-    """
-    Настраивает логирование из YAML конфигурационного файла.
-    
-    Returns:
-        logging.Logger: Настроенный логгер
-        
-    Raises:
-        FileNotFoundError: Если файл конфигурации не найден
-        
-    Пример:
-        >>> logger = setup_logging()
-        >>> logger.info("Логирование настроено")
-    """
     try:
         with open('logging_config.yaml', 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)

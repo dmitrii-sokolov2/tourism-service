@@ -1,17 +1,3 @@
-"""
-Модуль ресурсов для работы с турами.
-
-Содержит REST API ресурсы для операций с турами:
-- TourListResource: Работа со списком туров
-- TourResource: Работа с конкретным туром
-- AvailableToursResource: Получение доступных туров
-
-Все ресурсы наследуют BaseResource для единообразной
-обработки исключений и логирования.
-
-Автор: [Соколов Дмитрий]
-Версия: 3.0
-"""
 
 from resources.base_resource import BaseResource
 from services.tourism_services import TourService, DestinationService
@@ -41,28 +27,7 @@ api_logger = api_logger
 tour_validator = TourValidator()
 
 class TourListResource(BaseResource):
-    """
-    Ресурс для работы со списком туров с обработкой исключений.
-    
-    Поддерживает операции:
-    - GET: Получение списка всех туров
-    - POST: Создание нового тура
-    """
-    
     def get(self):
-        """
-        Возвращает список всех туров.
-        
-        Returns:
-            list: Список словарей с данными туров
-            
-        Raises:
-            Exception: При ошибках получения данных из БД
-            
-        Пример:
-            GET /api/tours
-            Возвращает: [{"id": 1, "destination_name": "Париж", ...}, ...]
-        """
         try:
             api_logger.info("GET /api/tours - получение списка туров")
             tours = db.session.execute(select(Tour)).scalars().all()
@@ -72,26 +37,6 @@ class TourListResource(BaseResource):
             tour_logger.error(f"Ошибка при получении списка туров: {str(e)}", exc_info=True)
             return self.handle_exception(e, "Failed to fetch tours")
     
-    def post(self):
-        """
-        Создает новый тур.
-        
-        Тело запроса (JSON):
-            destination_id (int): ID направления (обязательно)
-            start_date (str): Дата начала тура в формате YYYY-MM-DD (обязательно)
-            end_date (str): Дата окончания тура в формате YYYY-MM-DD (обязательно)
-            available_slots (int, optional): Количество мест (по умолчанию 10)
-            is_active (bool, optional): Активен ли тур (по умолчанию True)
-        
-        Returns:
-            dict: Данные созданного тура и HTTP статус 201
-            
-        Raises:
-            TourValidationException: При некорректных данных
-            TourDateException: При невалидных датах
-            DestinationNotFoundException: При несуществующем направлении
-            ValidationError: При ошибках JSON валидации
-        """
     def post(self):
         try:
             if not request.data:
@@ -183,29 +128,7 @@ class TourListResource(BaseResource):
             return self.handle_exception(e, "Failed to create tour")
 
 class TourResource(BaseResource):
-    """
-    Ресурс для работы с конкретным туром по ID с обработкой исключений.
-    
-    Поддерживает операции:
-    - GET: Получение тура по ID
-    - PUT: Обновление тура по ID
-    - DELETE: Удаление тура по ID
-    """
-    
     def get(self, id):
-        """
-        Возвращает тур по указанному ID.
-        
-        Args:
-            id (int): ID тура
-            
-        Returns:
-            dict: Данные тура
-            
-        Raises:
-            TourNotFoundException: Если тур не найден
-            Exception: При других ошибках
-        """
         try:
             api_logger.info(f"GET /api/tours/{id} - получение тура")
             tour = TourService.get_tour_by_id(id)
@@ -219,28 +142,6 @@ class TourResource(BaseResource):
             return self.handle_exception(e, "Failed to fetch tour")
     
     def put(self, id):
-        """
-        Обновляет данные тура по указанному ID.
-        
-        Args:
-            id (int): ID тура
-            
-        Тело запроса (JSON):
-            destination_id (int, optional): Новый ID направления
-            start_date (str, optional): Новая дата начала
-            end_date (str, optional): Новая дата окончания  
-            available_slots (int, optional): Новое количество мест
-            is_active (bool, optional): Новый статус активности
-            
-        Returns:
-            dict: Обновленные данные тура
-            
-        Raises:
-            TourNotFoundException: Если тур не найден
-            TourValidationException: При некорректных данных
-            TourDateException: При невалидных датах
-            DestinationNotFoundException: При несуществующем направлении
-        """
         try:
             api_logger.info(f"PUT /api/tours/{id} - обновление тура")
             tour = TourService.get_tour_by_id(id)
@@ -321,19 +222,6 @@ class TourResource(BaseResource):
             return self.handle_exception(e, "Failed to update tour")
     
     def delete(self, id):
-        """
-        Удаляет тур по указанному ID.
-        
-        Args:
-            id (int): ID тура
-            
-        Returns:
-            dict: Сообщение об успешном удалении
-            
-        Raises:
-            TourNotFoundException: Если тур не найден
-            TourValidationException: Если у тура есть активные бронирования
-        """
         try:
             api_logger.info(f"DELETE /api/tours/{id} - удаление тура")
             tour = TourService.get_tour_by_id(id)
@@ -365,27 +253,7 @@ class TourResource(BaseResource):
             return self.handle_exception(e, "Failed to delete tour")
 
 class AvailableToursResource(BaseResource):
-    """
-    Ресурс для получения только доступных для бронирования туров.
-    
-    Поддерживает операцию:
-    - GET: Получение списка активных туров с доступными местами
-    """
-    
     def get(self):
-        """
-        Возвращает список доступных для бронирования туров.
-        
-        Returns:
-            list: Список туров с available_slots > 0 и is_active = True
-            
-        Raises:
-            Exception: При ошибках получения данных
-            
-        Пример:
-            GET /api/tours/available
-            Возвращает только туры которые можно забронировать
-        """
         try:
             api_logger.info("GET /api/tours/available - получение доступных туров")
             available_tours = TourService.get_available_tours()

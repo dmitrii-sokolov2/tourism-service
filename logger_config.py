@@ -1,45 +1,8 @@
-"""
-Модуль конфигурации системы логирования для туристического REST API.
-
-Этот модуль предоставляет централизованную систему логирования с:
-- Разделением логов по модулям (users, tours, destinations)
-- Ротацией файлов для предотвращения переполнения диска
-- Форматированием с временными метками и контекстом
-- Поддержкой разных уровней логирования (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-
-Основные компоненты:
-- setup_logger(): Функция для создания и настройки логгеров
-- Глобальные логгеры для каждого сервиса
-
-Использование:
-    from logger_config import user_logger, tour_logger
-    user_logger.info("Сообщение для логирования пользователей")
-
-Автор: [Соколов Дмитрий]
-Версия: 1.0
-"""
-
 import logging
 import os
 from logging.handlers import RotatingFileHandler
 
-def setup_logger(name, log_file, level=logging.INFO):
-    """
-    Создает и настраивает логгер с ротацией файлов.
-    
-    Args:
-        name (str): Имя логгера (обычно __name__ модуля)
-        log_file (str): Имя файла для записи логов
-        level (int): Уровень логирования (по умолчанию INFO)
-    
-    Returns:
-        logging.Logger: Настроенный объект логгера
-    
-    Пример:
-        logger = setup_logger('user_service', 'users.log')
-        logger.info("Тестовое сообщение")
-    """
-    
+def setup_logger(name, log_file, level=logging.INFO): 
     # Создаем папку для логов если её нет
     log_dir = 'logs'
     if not os.path.exists(log_dir):

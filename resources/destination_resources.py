@@ -25,10 +25,6 @@ api_logger = api_logger
 destination_validator = DestinationValidator()
 
 class DestinationListResource(BaseResource):
-    """
-    Ресурс для работы со списком направлений с обработкой исключений.
-    """
-    
     def get(self):
         try:
             api_logger.info("GET /api/destinations - получение списка направлений")
@@ -128,10 +124,6 @@ class DestinationListResource(BaseResource):
             return self.handle_exception(e, "Failed to create destination")
 
 class DestinationResource(BaseResource):
-    """
-    Ресурс для работы с конкретным направлением по ID с обработкой исключений.
-    """
-    
     def get(self, id):
         try:
             api_logger.info(f"GET /api/destinations/{id} - получение направления")

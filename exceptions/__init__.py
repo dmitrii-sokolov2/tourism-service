@@ -1,9 +1,3 @@
-"""
-Пакет пользовательских исключений для туристического API.
-
-Содержит все пользовательские исключения системы.
-"""
-
 from .custom_exceptions import (
     TourismBaseException,
     UserNotFoundException, UserEmailDuplicateException, UserValidationException,

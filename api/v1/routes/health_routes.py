@@ -9,14 +9,5 @@ logger = setup_logging()
 
 @health_bp.route('/health')
 def health_check():
-    """
-    Эндпоинт проверки здоровья сервиса.
-    
-    Returns:
-        dict: Статус сервиса и подключения к БД
-        
-    Пример ответа:
-        {"status": "healthy", "database": "connected"}
-    """
     logger.debug("GET /api/health - проверка здоровья")
     return jsonify({"status": "healthy", "database": "connected"})
