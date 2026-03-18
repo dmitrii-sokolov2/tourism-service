@@ -1,5 +1,5 @@
 
-from .user_resources import (
+from resources.user_resources import (
     UserListResource, UserResource, UserBulkDeleteResource, UserBookTourResource
 )
 from .destination_resources import (

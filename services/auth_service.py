@@ -1,11 +1,13 @@
 import bcrypt, jwt, secrets, hashlib
 from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
-from flask import jsonify
-
+from sqlalchemy import select
+from pydantic import ValidationError
+from flask import abort
 
 from config import Config
-from models import db, User, RefreshToken
+from core.extensions import db
+from models.models import RefreshToken, User
 from schemes.user import UserRegisterSchema
 
 SECRET_KEY = Config.SECRET_KEY
@@ -27,61 +29,62 @@ def create_access_token(user_id: int, email: str) -> str:
     }
 
     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
-    
+
 def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
-    
-def create_refresh_token(user_id: int):
+
+def create_refresh_token(user_id: int) -> str:
     token = secrets.token_urlsafe(32)
     token_hash = hash_token(token)
-    
+
     refresh = RefreshToken(
         user_id=user_id,
         token_hash=token_hash,
         expires_at=datetime.utcnow() + timedelta(days=7)
     )
-    
+
     db.session.add(refresh)
     db.session.commit()
-    
-    return token
-    
-def register_user(data: UserRegisterSchema):
-    password_hash = hash_password(data.password)
 
-    new_user = User(
-        name=data.name,
-        email=data.email,
-        phone=data.phone,
+    return token
+
+def register_user(data: dict) -> dict:
+    try:
+        user_data = UserRegisterSchema(**data)
+    except ValidationError as e:
+        abort(409, description=e.errors())
+
+    password_hash = hash_password(data["password"])
+
+    user = User(
+        **user_data.model_dump(exclude={"password"}),
         password_hash=password_hash
     )
-    
-    try: 
-        db.session.add(new_user)
+
+    try:
+        db.session.add(user)
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        raise Exception("User with this email already exists")
-    except Exception as e:
-        raise Exception(e)
+        abort(400, description="user already exists")
 
     return {
-        "id": new_user.id,
-        "email": new_user.email
+        "id": user.id,
+        "email": user.email
     }
 
-def login_user(email, password):
-    user = User.query.filter_by(email=email).first()
+def login_user(email, password) -> dict:
+    user = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
 
-    if not user:
-        raise Exception("User not found")
+    if user is None:
+        abort(404, description="user does not exist")
 
     if not verify_password(password, user.password_hash):
-        raise Exception("Invalid password")
+        abort(401, description="invalid password")
 
     access_token = create_access_token(user.id, user.email)
     refresh_token = create_refresh_token(user.id)
-    
+
     return {
         "access_token": access_token,
         "refresh_token": refresh_token

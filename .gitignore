@@ -12,5 +12,3 @@ venv/
 
 logs/
 *.log
-
-*.db

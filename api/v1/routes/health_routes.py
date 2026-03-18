@@ -1,6 +1,4 @@
 from flask import Blueprint, jsonify
-import logging, logging.config
-import yaml
 
 from core.logging_config import setup_logging
 
