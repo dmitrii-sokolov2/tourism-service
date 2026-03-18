@@ -15,3 +15,9 @@ class Config:
     MAX_CONCURRENT_BOOKINGS = 5
     THREAD_TIMEOUT_SECONDS = 30
     DB_CONNECTION_POOL_SIZE = 20
+
+    MAIL_SERVER = "sandbox.smtp.mailtrap.io"
+    MAIL_PORT = 587
+    MAIL_USERNAME = "mail@gmail.com"
+    MAIL_PASSWORD = "password"
+    MAIL_FROM = "sample@service"

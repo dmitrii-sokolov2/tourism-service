@@ -1,10 +1,6 @@
-from flask_sqlalchemy import SQLAlchemy
+from core.extensions import db
 from datetime import datetime
 
-# Инициализируем db здесь
-db = SQLAlchemy()
-
-# Таблица для отношения многие-ко-многим (User-Tour)
 user_tour = db.Table('user_tour',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
     db.Column('tour_id', db.Integer, db.ForeignKey('tours.id'), primary_key=True),
@@ -22,7 +18,6 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     password_hash = db.Column(db.String(255), nullable=False)
     
-    # Отношение многие-ко-многим с Tour
     booked_tours = db.relationship('Tour', secondary=user_tour, backref=db.backref('users', lazy=True))
     refresh_tokens = db.relationship('RefreshToken', back_populates='user')
     
@@ -47,11 +42,7 @@ class Destination(db.Model):
     duration_days = db.Column(db.Integer)
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
-    
-    # Связи
-    tours = db.relationship('Tour', backref='destination', lazy=True)
-    
-    # Отношение один-ко-многим с Tour
+
     tours = db.relationship('Tour', backref='destination', lazy=True, cascade='all, delete-orphan')
     
     def to_dict(self):
@@ -62,7 +53,6 @@ class Destination(db.Model):
             'description': self.description,
             'price': self.price,
             'duration_days': self.duration_days,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
             'tours_count': len(self.tours)
         }
 
@@ -76,7 +66,7 @@ class Tour(db.Model):
     available_slots = db.Column(db.Integer, default=10)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -87,7 +77,8 @@ class Tour(db.Model):
             'available_slots': self.available_slots,
             'is_active': self.is_active,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'users_count': len(self.users)
+            'users_count': len(self.users),
+            'price': self.destination.price if self.destination else None
         }
 
 class RefreshToken(db.Model):
@@ -101,4 +92,3 @@ class RefreshToken(db.Model):
     token_hash = db.Column(db.String(255), nullable=False)
     expires_at = db.Column(db.DateTime, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    

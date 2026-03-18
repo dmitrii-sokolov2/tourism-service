@@ -1,9 +1,8 @@
 
-from models import db, User, Destination, Tour
+from models.models import db, User, Destination, Tour
 from exceptions.custom_exceptions import *
 from logger_config import user_logger, destination_logger, tour_logger
-import threading
-from threading import Lock, Semaphore, BoundedSemaphore
+from threading import Lock, BoundedSemaphore
 
 class TourService:
     @staticmethod

@@ -1,23 +1,7 @@
 from flask import Blueprint, jsonify
-import logging, logging.config
-import yaml
 
-def setup_logging():
-    try:
-        with open('logging_config.yaml', 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-        logging.config.dictConfig(config)
-        logger = logging.getLogger(__name__)
-        logger.info("✅ Логирование настроено из YAML конфигурации")
-        return logger
-    except FileNotFoundError:
-        logging.basicConfig(
-            level=logging.INFO, 
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
-        logger = logging.getLogger(__name__)
-        logger.warning("⚠️ Файл конфигурации логирования не найден, используется базовая настройка")
-        return logger
+from models.models import Destination
+from core.logging_config import setup_logging
 
 destinations_bp = Blueprint('destinations', __name__)
 logger = setup_logging()
@@ -25,17 +9,13 @@ logger = setup_logging()
 @destinations_bp.route('/coordinates')
 def get_destinations_coordinates():
     try:
-        # Получаем все направления
         destinations = Destination.query.all()
         result = []
         
         for dest in destinations:
-            # Проверяем, есть ли координаты
             if dest.latitude and dest.longitude:
-                # Считаем количество туров для этого направления
                 tours_count = len(dest.tours) if hasattr(dest, 'tours') else 0
                 
-                # 👇 ПРЕОБРАЗУЕМ ЦЕНУ (умножаем на 50 для красивых рублей)
                 price_in_rubles = int(dest.price * 50) if dest.price else 35000
                 
                 result.append({
@@ -45,10 +25,9 @@ def get_destinations_coordinates():
                     'lat': float(dest.latitude),
                     'lng': float(dest.longitude),
                     'tours': tours_count,
-                    'price': f'{price_in_rubles}'  # Теперь 1200 → 60000
+                    'price': f'{price_in_rubles}'
                 })
         
-        # Если нет городов с координатами, возвращаем тестовые
         if not result:
             result = [
                 {'id': 1, 'name': 'Париж', 'country': 'Франция', 'lat': 48.8566, 'lng': 2.3522, 'tours': 5, 'price': '60000'},
@@ -59,11 +38,10 @@ def get_destinations_coordinates():
         return jsonify(result)
         
     except Exception as e:
-        print(f"Ошибка в /api/destinations/coordinates: {str(e)}")
+        print(f"Ошибка в /api/v1/destinations/coordinates: {str(e)}")
         import traceback
         traceback.print_exc()
         
-        # Возвращаем тестовые данные при ошибке
         test_data = [
             {'id': 1, 'name': 'Париж', 'country': 'Франция', 'lat': 48.8566, 'lng': 2.3522, 'tours': 5, 'price': '60000'},
             {'id': 2, 'name': 'Токио', 'country': 'Япония', 'lat': 35.6762, 'lng': 139.6503, 'tours': 3, 'price': '90000'},

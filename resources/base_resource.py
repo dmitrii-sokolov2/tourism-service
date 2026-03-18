@@ -1,4 +1,3 @@
-
 from flask_restful import Resource
 from flask import request
 import logging
@@ -10,7 +9,6 @@ class BaseResource(Resource):
     def handle_exception(self, e, message="Operation failed"):
         logger.error(f"{message}: {str(e)}")
         
-        # Обработка пользовательских исключений
         if hasattr(e, 'status_code') and hasattr(e, 'message'):
             return {
                 "type": "about:blank",
@@ -20,7 +18,6 @@ class BaseResource(Resource):
                 "instance": request.path
             }, e.status_code
         
-        # Обработка стандартных исключений
         status_code = 400
         if isinstance(e, ValueError):
             status_code = 422
@@ -36,7 +33,7 @@ class BaseResource(Resource):
         }, status_code
 
     def get_by_id(self, model, id):
-        from models import db  
+        from models.models import db
         return db.session.get(model, id)
     def handle_concurrent_operation(self, operation_func, *args, **kwargs):
         def run_operation():

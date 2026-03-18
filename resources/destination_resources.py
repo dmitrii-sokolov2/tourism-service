@@ -1,6 +1,6 @@
 from resources.base_resource import BaseResource
 from services.tourism_services import DestinationService
-from models import db, Destination
+from models.models import db, Destination
 from sqlalchemy import select
 from flask import request
 

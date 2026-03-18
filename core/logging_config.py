@@ -8,7 +8,7 @@ def setup_logging():
             config = yaml.safe_load(f)
         logging.config.dictConfig(config)
         logger = logging.getLogger(__name__)
-        logger.info("✅ Логирование настроено из YAML конфигурации")
+        logger.info("Логирование настроено из YAML конфигурации")
         return logger
     except FileNotFoundError:
         logging.basicConfig(
@@ -16,5 +16,5 @@ def setup_logging():
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
         logger = logging.getLogger(__name__)
-        logger.warning("⚠️ Файл конфигурации логирования не найден, используется базовая настройка")
+        logger.warning("Файл конфигурации логирования не найден, используется базовая настройка")
         return logger

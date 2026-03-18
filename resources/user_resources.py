@@ -1,30 +1,13 @@
-"""
-Модуль ресурсов для работы с пользователями.
-
-Содержит REST API ресурсы для операций с пользователями:
-- UserListResource: Работа со списком пользователей
-- UserResource: Работа с конкретным пользователем  
-- UserBulkDeleteResource: Массовое удаление пользователей
-- UserBookTourResource: Бронирование туров пользователями
-
-Все ресурсы наследуют BaseResource для единообразной
-обработки исключений и логирования.
-
-Автор: [Соколов Дмитрий]
-Версия: 3.0
-"""
-
 from flask_restful import Resource
 from flask import request
 from resources.base_resource import BaseResource
 from services.tourism_services import UserService, BookingService, TourService
-from models import db, User
+from models.models import User
+from core.extensions import db
 from sqlalchemy import select, delete
 
-# Импорты для логирования 
 from logger_config import user_logger, api_logger
 
-# ЯВНО импортируем все используемые исключения
 from exceptions.custom_exceptions import (
     UserNotFoundException, 
     UserValidationException, 
@@ -40,32 +23,10 @@ from validators.user_validator import UserValidator
 from transfer.problem_details import ProblemDetails
 from jsonschema.exceptions import ValidationError
 
-# Инициализация валидатора
 user_validator = UserValidator()
 
 class UserListResource(BaseResource):
-    """
-    Ресурс для работы со списком пользователей с обработкой исключений.
-    
-    Поддерживает операции:
-    - GET: Получение списка всех пользователей
-    - POST: Создание нового пользователя
-    """
-    
     def get(self):
-        """
-        Возвращает список всех пользователей.
-        
-        Returns:
-            list: Список словарей с данными пользователей
-            
-        Raises:
-            Exception: При ошибках получения данных из БД
-            
-        Пример:
-            GET /api/users
-            Возвращает: [{"id": 1, "name": "Иван", ...}, ...]
-        """
         try:
             api_logger.info("GET /api/users - получение списка пользователей")
             users = db.session.execute(select(User)).scalars().all()
@@ -74,24 +35,7 @@ class UserListResource(BaseResource):
         except Exception as e:
             user_logger.error(f"Ошибка при получении списка пользователей: {str(e)}", exc_info=True)
             return self.handle_exception(e, "Failed to fetch users")
-    
-    def post(self):
-        """
-        Создает нового пользователя.
-        
-        Тело запроса (JSON):
-            name (str): Имя пользователя (обязательно)
-            email (str): Email адрес (обязательно, уникальный)
-            phone (str, optional): Номер телефона
-        
-        Returns:
-            tuple: Данные пользователя и HTTP статус 201
-            
-        Raises:
-            UserValidationException: При некорректных данных
-            UserEmailDuplicateException: При дублировании email
-            ValidationError: При ошибках JSON валидации
-        """
+
     def post(self):
         try:
             if not request.data:
@@ -126,12 +70,10 @@ class UserListResource(BaseResource):
             
             api_logger.info(f"POST /api/users - создание пользователя: {data.get('email')}")
             
-            # ВАЛИДАЦИЯ ПО JSON СХЕМЕ
             try:
                 user_validator.validate_user(data, 'add')
                 user_logger.debug("Валидация JSON схемы пройдена успешно")
             except ValidationError as e:
-                # Детализированная обработка ошибок валидации
                 errors = user_validator.validate_with_details(data, 'add')
                 error_details = []
                 
@@ -154,7 +96,6 @@ class UserListResource(BaseResource):
                 )
                 return problem_details.to_dict(), 422
             
-            # СУЩЕСТВУЮЩАЯ ЛОГИКА
             UserService.validate_user_data(data)
             
             user = User(
@@ -179,29 +120,7 @@ class UserListResource(BaseResource):
             return self.handle_exception(e, "Failed to create user")
 
 class UserResource(BaseResource):
-    """
-    Ресурс для работы с конкретным пользователем по ID с обработкой исключений.
-    
-    Поддерживает операции:
-    - GET: Получение пользователя по ID
-    - PUT: Обновление пользователя по ID  
-    - DELETE: Удаление пользователя по ID
-    """
-    
     def get(self, id):
-        """
-        Возвращает пользователя по указанному ID.
-        
-        Args:
-            id (int): ID пользователя
-        
-        Returns:
-            dict: Данные пользователя
-            
-        Raises:
-            UserNotFoundException: Если пользователь не найден
-            Exception: При других ошибках
-        """
         try:
             api_logger.info(f"GET /api/users/{id} - получение пользователя")
             user = UserService.get_user_by_id(id)
@@ -215,25 +134,6 @@ class UserResource(BaseResource):
             return self.handle_exception(e, "Failed to fetch user")
     
     def put(self, id):
-        """
-        Обновляет данные пользователя по указанному ID.
-        
-        Args:
-            id (int): ID пользователя
-        
-        Тело запроса (JSON):
-            name (str, optional): Новое имя
-            email (str, optional): Новый email
-            phone (str, optional): Новый телефон
-        
-        Returns:
-            dict: Обновленные данные пользователя
-            
-        Raises:
-            UserNotFoundException: Если пользователь не найден
-            UserValidationException: При некорректных данных
-            UserEmailDuplicateException: При дублировании email
-        """
         try:
             api_logger.info(f"PUT /api/users/{id} - обновление пользователя")
             user = UserService.get_user_by_id(id)
@@ -268,19 +168,6 @@ class UserResource(BaseResource):
             return self.handle_exception(e, "Failed to update user")
     
     def delete(self, id):
-        """
-        Удаляет пользователя по указанному ID.
-        
-        Args:
-            id (int): ID пользователя
-        
-        Returns:
-            dict: Сообщение об успешном удалении
-            
-        Raises:
-            UserNotFoundException: Если пользователь не найден
-            Exception: При других ошибках
-        """
         try:
             api_logger.info(f"DELETE /api/users/{id} - удаление пользователя")
             user = UserService.get_user_by_id(id)
@@ -299,28 +186,7 @@ class UserResource(BaseResource):
             return self.handle_exception(e, "Failed to delete user")
 
 class UserBulkDeleteResource(BaseResource):
-    """
-    Ресурс для массового удаления пользователей с обработкой исключений.
-    
-    Поддерживает операцию:
-    - DELETE: Удаление нескольких пользователей по списку ID
-    """
-    
     def delete(self):
-        """
-        Удаляет нескольких пользователей по списку ID.
-        
-        Тело запроса (JSON):
-            user_ids (list): Список ID пользователей для удаления
-        
-        Returns:
-            dict: Сообщение с количеством удаленных пользователей
-            
-        Raises:
-            UserValidationException: При пустом списке ID
-            UserNotFoundException: При несуществующих пользователях
-            UserValidationException: При пользователях с активными бронированиями
-        """
         try:
             data = request.get_json()
             if not data:
@@ -332,7 +198,6 @@ class UserBulkDeleteResource(BaseResource):
             if not user_ids:
                 raise UserValidationException('user_ids', user_ids, "Список ID пользователей не может быть пустым")
             
-            # Проверяем существование всех пользователей перед удалением
             non_existent_users = []
             for user_id in user_ids:
                 user = db.session.get(User, user_id)
@@ -346,7 +211,6 @@ class UserBulkDeleteResource(BaseResource):
                     f"Пользователи с ID {non_existent_users} не найдены"
                 )
             
-            # Проверяем, есть ли у пользователей активные бронирования
             users_with_bookings = []
             for user_id in user_ids:
                 user = db.session.get(User, user_id)
@@ -361,7 +225,6 @@ class UserBulkDeleteResource(BaseResource):
                     f"Невозможно удалить пользователей {users_with_bookings}. У них есть активные бронирования"
                 )
             
-            # Используем современный синтаксис SQLAlchemy 2.0
             stmt = delete(User).where(User.id.in_(user_ids))
             result = db.session.execute(stmt)
             db.session.commit()
@@ -380,12 +243,7 @@ class UserBulkDeleteResource(BaseResource):
             return self.handle_exception(e, "Failed to delete users")
 
 class UserBookTourResource(BaseResource):
-    """
-    Ресурс для бронирования тура пользователем с обработкой исключений.
-    """
-    
     def post(self, user_id, tour_id):
-        """Бронирует тур для пользователя с полной валидацией."""
         try:
             api_logger.info(f"POST /api/users/{user_id}/book-tour/{tour_id} - бронирование тура")
             user = UserService.get_user_by_id(user_id)
@@ -393,7 +251,6 @@ class UserBookTourResource(BaseResource):
             
             user_logger.debug(f"Бронирование: пользователь {user.name}, тур {tour.id}")
             
-            # Используем ПОТОКОБЕЗОПАСНЫЙ сервис бронирования
             from services.tourism_services import ThreadSafeBookingService
             booking_result = ThreadSafeBookingService.thread_safe_booking(user, tour)
             

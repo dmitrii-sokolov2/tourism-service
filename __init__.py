@@ -2,7 +2,8 @@
 from app import app
 
 # Модели базы данных
-from models import db, User, Destination, Tour
+from models.models import User, Destination, Tour
+from core.extensions import db
 
 # API ресурсы
 from resources.user_resources import (
@@ -42,7 +43,7 @@ except ImportError:
     import sys
     import os
     sys.path.append(os.path.join(os.path.dirname(__file__), 'transfer'))
-    from problem_details import ProblemDetails
+    from transfer.problem_details import ProblemDetails
 
 __all__ = [
     # Приложение и БД
@@ -72,8 +73,6 @@ __all__ = [
     # Валидаторы
     'UserValidator', 'TourValidator', 'DestinationValidator'
 ]
-
-from services.tourism_services import ThreadSafeBookingService
 
 # Добавить в __all__
 'ThreadSafeBookingService'

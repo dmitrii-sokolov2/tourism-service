@@ -1,11 +1,9 @@
-
 from resources.base_resource import BaseResource
 from services.tourism_services import TourService, DestinationService
-from models import db, Tour, Destination
+from models.models import db, Tour, Destination
 from sqlalchemy import select
 from flask import request
 
-# Импорты для логирования
 from logger_config import tour_logger, api_logger
 
 from exceptions.custom_exceptions import (
@@ -19,11 +17,9 @@ from validators.tour_validator import TourValidator
 from transfer.problem_details import ProblemDetails
 from jsonschema.exceptions import ValidationError
 
-# Настройка логирования
 tour_logger = tour_logger
 api_logger = api_logger
 
-# Инициализация валидатора
 tour_validator = TourValidator()
 
 class TourListResource(BaseResource):
