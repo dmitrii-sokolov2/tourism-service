@@ -12,3 +12,5 @@ venv/
 
 logs/
 *.log
+
+postgres_data/
