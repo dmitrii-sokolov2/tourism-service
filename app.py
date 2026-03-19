@@ -1,6 +1,11 @@
+import time
+
 from flask import Flask, jsonify, Blueprint
 from flask_restful import Api
 from sqlalchemy import select
+import os
+
+from sqlalchemy.exc import OperationalError
 
 from config import Config
 from models.models import User, Destination, Tour
@@ -22,11 +27,12 @@ from services.email_service import EmailService
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 register_error_handlers(app)
 
 db.init_app(app)
 
-api_v1_bp = Blueprint('api_v1', __name__, url_prefix='/api/v1/') #!
+api_v1_bp = Blueprint('api_v1', __name__, url_prefix='/api/v1/')
 api_v1 = Api(api_v1_bp)
 
 logger = setup_logging()
@@ -175,10 +181,6 @@ api_v1.add_resource(UserBookTourResource, '/users/<int:user_id>/book-tour/<int:t
 api_v1.add_resource(DestinationListResource, '/destinations')
 api_v1.add_resource(DestinationResource, '/destinations/<int:id>')
 
-# api_v1.add_resource(TourListResource, '/tours')
-# api_v1.add_resource(TourResource, '/tours/<int:id>')
-# api_v1.add_resource(AvailableToursResource, '/tours/available')
-
 api_v1_bp.register_blueprint(auth_bp, url_prefix='/auth')
 api_v1_bp.register_blueprint(booking_bp, url_prefix='/bookings')
 api_v1_bp.register_blueprint(health_bp)
@@ -192,10 +194,17 @@ if __name__ == '__main__':
     print("Модульная архитектура с обработкой исключений и логированием")
     
     with app.app_context():
-        db.create_all()
+        for i in range(10):
+            try:
+                db.create_all()
+                break
+            except OperationalError:
+                print("DB is not ready...")
+                time.sleep(2)
+
         add_sample_data()
         validate_architecture()
-        
+        print("DB URL =", app.config["SQLALCHEMY_DATABASE_URI"])
         print("База данных инициализирована")
         print("Тестовые данные добавлены")
         print("Архитектурные принципы проверены")
