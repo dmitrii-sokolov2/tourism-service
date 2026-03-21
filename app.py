@@ -1,16 +1,13 @@
 import time
-
 from flask import Flask, jsonify, Blueprint
 from flask_restful import Api
 from sqlalchemy import select
 import os
-
 from sqlalchemy.exc import OperationalError
 
 from config import Config
 from models.models import User, Destination, Tour
 from core.extensions import db
-
 from resources.user_resources import UserListResource, UserResource, UserBulkDeleteResource, UserBookTourResource
 from resources.destination_resources import DestinationListResource, DestinationResource
 # from resources.tour_resources import TourListResource, TourResource, AvailableToursResource
@@ -22,7 +19,6 @@ from api.v1.routes.booking_routes import booking_bp
 from api.v1.routes.tour_routes import tour_bp
 from core.logging_config import setup_logging
 from flask import send_from_directory
-
 from services.email_service import EmailService
 
 app = Flask(__name__)
