@@ -6,7 +6,7 @@ base_dir = os.path.abspath(os.path.dirname(__file__))
 db_path = os.path.join(base_dir, 'data', 'tourism.db')
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = 'postgresql://tourist:123@db/tourism_db'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://tourist:123@localhost/tourism_db?client_encoding=utf8'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = 'tourism-secret-key-2024'
     
