@@ -33,7 +33,7 @@ class User(db.Model):
 
 class Destination(db.Model):  
     __tablename__ = 'destinations'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     country = db.Column(db.String(50), nullable=False)
@@ -42,6 +42,10 @@ class Destination(db.Model):
     duration_days = db.Column(db.Integer)
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
+    rating = db.Column(db.Float, default=4.5)
+    tour_type = db.Column(db.String(50), default='Экскурсионный')
+    hotel_stars = db.Column(db.Integer, default=3)
+    transfer = db.Column(db.Boolean, default=False)
 
     tours = db.relationship('Tour', backref='destination', lazy=True, cascade='all, delete-orphan')
     
@@ -53,6 +57,7 @@ class Destination(db.Model):
             'description': self.description,
             'price': self.price,
             'duration_days': self.duration_days,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
             'tours_count': len(self.tours)
         }
 
