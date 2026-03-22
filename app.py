@@ -1,18 +1,3 @@
-"""
-Модуль REST API сервиса для туристического агентства.
-
-ВЕРСИЯ 3.0 - С РАСШИРЕННОЙ СИСТЕМОЙ ИСКЛЮЧЕНИЙ И ЛОГИРОВАНИЕМ
-
-Основные компоненты:
-- Flask приложение с REST API
-- Обработка исключений в формате Problem Details
-- Логирование операций
-- Инициализация базы данных
-- Добавление тестовых данных
-
-Импортирует все основные классы системы для единой документации.
-"""
-
 from flask import Flask, jsonify, request, Blueprint
 from flask_restful import Api
 import os
@@ -26,6 +11,7 @@ from sqlalchemy import select, delete
 from config import Config
 from models import db, User, Destination, Tour
 from exceptions.custom_exceptions import TourismBaseException
+from flask import send_from_directory
 
 # Импорты ресурсов
 from resources.user_resources import UserListResource, UserResource, UserBulkDeleteResource, UserBookTourResource
@@ -56,29 +42,16 @@ api_v1 = Api(api_v1_bp) #!
 
 api = Api(app)
 
-# Настраиваем логирование ПЕРЕД использованием логгера
 logger = setup_logging()
 
 @app.route('/')
-def hello():
-    """
-    Корневой эндпоинт API с информацией о сервисе.
-    
-    Returns:
-        dict: Информация о сервисе и доступные эндпоинты
-        
-    Пример ответа:
-        {
-            "message": "Tourism REST Service",
-            "version": "3.0", 
-            "endpoints": {
-                "users": "/api/users",
-                "destinations": "/api/destinations",
-                "tours": "/api/tours"
-            }
-        }
-    """
-    logger.info("GET / - корневой запрос")
+def index():
+    logger.info("GET / - открываем глобус")
+    return send_from_directory('static', 'index.html')
+
+@app.route('/api-info')
+def api_info():
+    logger.info("GET /api-info - информация об API")
     return jsonify({
         "message": "Tourism REST Service", 
         "version": "3.0",
@@ -90,29 +63,14 @@ def hello():
             "health": "/api/health"
         }
     })
-    
+
 api_v1_bp.register_blueprint(auth_bp, url_prefix='/auth')
 api_v1_bp.register_blueprint(booking_bp, url_prefix='/bookings')
 api_v1_bp.register_blueprint(health_bp)
 api_v1_bp.register_blueprint(stats_bp, url_prefix='/stats')
-# api_v1_bp.register_blueprint(destinations_bp, url_prefix='/destinations')
 app.register_blueprint(api_v1_bp) #!
 
 def add_sample_data():
-    """
-    Добавляет тестовые данные в базу данных при первом запуске.
-    
-    Создает:
-    - 3 тестовых направления (Париж, Токио, Бали)
-    - 3 тестовых пользователя
-    - 3 тестовых тура
-    
-    Returns:
-        None
-        
-    Raises:
-        Exception: При ошибках добавления данных
-    """
     try:
         if db.session.execute(select(User)).first():
             logger.info("База данных уже содержит данные, пропускаем добавление тестовых данных")
@@ -154,12 +112,6 @@ def add_sample_data():
         db.session.rollback()
 
 def validate_architecture():
-    """
-    Проверяет соблюдение архитектурных принципов и логирует результаты.
-    
-    Returns:
-        None
-    """
     principles = {
         "high_cohesion": "Сервисы имеют одну четкую ответственность",
         "low_coupling": "Ресурсы используют сервисы вместо прямой логики", 
@@ -173,7 +125,6 @@ def validate_architecture():
     for principle, description in principles.items():
         logger.info(f"  ✓ {principle}: {description}")
 
-# Регистрация API ресурсов
 api_v1.add_resource(UserListResource, '/users')
 api_v1.add_resource(UserResource, '/users/<int:id>')
 api_v1.add_resource(UserBulkDeleteResource, '/users/bulk-delete')
@@ -188,19 +139,13 @@ api_v1.add_resource(AvailableToursResource, '/tours/available')
       
 @app.route('/api/destinations/coordinates')
 def get_destinations_coordinates():
-    """Возвращает города с координатами для глобуса"""
     try:
-        # Получаем все направления
         destinations = Destination.query.all()
         result = []
         
         for dest in destinations:
-            # Проверяем, есть ли координаты
             if dest.latitude and dest.longitude:
-                # Считаем количество туров для этого направления
                 tours_count = len(dest.tours) if hasattr(dest, 'tours') else 0
-                
-                # 👇 ПРЕОБРАЗУЕМ ЦЕНУ (умножаем на 50 для красивых рублей)
                 price_in_rubles = int(dest.price * 50) if dest.price else 35000
                 
                 result.append({
@@ -210,25 +155,39 @@ def get_destinations_coordinates():
                     'lat': float(dest.latitude),
                     'lng': float(dest.longitude),
                     'tours': tours_count,
-                    'price': f'{price_in_rubles}'  # Теперь 1200 → 60000
+                    'price': f'{price_in_rubles}',
+                    'rating': dest.rating if hasattr(dest, 'rating') and dest.rating else 4.5,
+                    'tour_type': dest.tour_type if hasattr(dest, 'tour_type') and dest.tour_type else 'Экскурсионный',
+                    'hotel_stars': dest.hotel_stars if hasattr(dest, 'hotel_stars') and dest.hotel_stars else 3,
+                    'transfer': dest.transfer if hasattr(dest, 'transfer') and dest.transfer else False
                 })
         
-        # Если нет городов с координатами, возвращаем тестовые
         if not result:
             result = [
-                {'id': 1, 'name': 'Париж', 'country': 'Франция', 'lat': 48.8566, 'lng': 2.3522, 'tours': 5, 'price': '60000'},
-                {'id': 2, 'name': 'Токио', 'country': 'Япония', 'lat': 35.6762, 'lng': 139.6503, 'tours': 3, 'price': '90000'},
-                {'id': 3, 'name': 'Бали', 'country': 'Индонезия', 'lat': -8.3405, 'lng': 115.0920, 'tours': 8, 'price': '45000'}
+                {'id': 1, 'name': 'Париж', 'country': 'Франция', 'lat': 48.8566, 'lng': 2.3522, 'tours': 5, 'price': '60000', 'rating': 4.8, 'tour_type': 'Экскурсионный', 'hotel_stars': 4, 'transfer': True},
+                {'id': 2, 'name': 'Токио', 'country': 'Япония', 'lat': 35.6762, 'lng': 139.6503, 'tours': 3, 'price': '90000', 'rating': 4.9, 'tour_type': 'Гастрономический', 'hotel_stars': 5, 'transfer': True},
+                {'id': 3, 'name': 'Бали', 'country': 'Индонезия', 'lat': -8.3405, 'lng': 115.0920, 'tours': 8, 'price': '45000', 'rating': 4.7, 'tour_type': 'Пляжный', 'hotel_stars': 4, 'transfer': False}
             ]
         
         return jsonify(result)
+        
+    except Exception as e:
+        print(f"Ошибка: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        test_data = [
+            {'id': 1, 'name': 'Париж', 'country': 'Франция', 'lat': 48.8566, 'lng': 2.3522, 'tours': 5, 'price': '60000', 'rating': 4.8, 'tour_type': 'Экскурсионный', 'hotel_stars': 4, 'transfer': True},
+            {'id': 2, 'name': 'Токио', 'country': 'Япония', 'lat': 35.6762, 'lng': 139.6503, 'tours': 3, 'price': '90000', 'rating': 4.9, 'tour_type': 'Гастрономический', 'hotel_stars': 5, 'transfer': True},
+            {'id': 3, 'name': 'Бали', 'country': 'Индонезия', 'lat': -8.3405, 'lng': 115.0920, 'tours': 8, 'price': '45000', 'rating': 4.7, 'tour_type': 'Пляжный', 'hotel_stars': 4, 'transfer': False}
+        ]
+        return jsonify(test_data)
         
     except Exception as e:
         print(f"Ошибка в /api/destinations/coordinates: {str(e)}")
         import traceback
         traceback.print_exc()
         
-        # Возвращаем тестовые данные при ошибке
         test_data = [
             {'id': 1, 'name': 'Париж', 'country': 'Франция', 'lat': 48.8566, 'lng': 2.3522, 'tours': 5, 'price': '60000'},
             {'id': 2, 'name': 'Токио', 'country': 'Япония', 'lat': 35.6762, 'lng': 139.6503, 'tours': 3, 'price': '90000'},
@@ -237,18 +196,6 @@ def get_destinations_coordinates():
         return jsonify(test_data)
         
 if __name__ == '__main__':
-    """
-    Точка входа приложения - запуск REST API сервера.
-    
-    Выполняет:
-    - Инициализацию базы данных
-    - Добавление тестовых данных
-    - Проверку архитектурных принципов
-    - Запуск Flask сервера
-    
-    Пример использования:
-        python app.py
-    """
     print("🚀 Запуск туристического REST API...")
     print("📁 Модульная архитектура с обработкой исключений и логированием")
     
