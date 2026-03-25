@@ -7,4 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com
 
 COPY . .
 
-CMD ["gunicorn", "app:app", "-w", "4", "-b", "0.0.0.0:5000"]
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+CMD ["/entrypoint.sh"]

@@ -13,4 +13,6 @@ venv/
 logs/
 *.log
 
+*.ctl
+
 postgres_data/
