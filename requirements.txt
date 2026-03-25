@@ -11,3 +11,4 @@ jsonschema==4.26.0
 PyYAML==6.0.3
 gunicorn==25.1.0
 flask-cors==4.0.0
+flask-migrate==4.1.0
