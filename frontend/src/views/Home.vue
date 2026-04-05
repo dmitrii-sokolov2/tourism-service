@@ -1,10 +1,10 @@
 <template>
   <div id="home">
     <div class="filters-sidebar">
-      <h3> Фильтры</h3>
+      <h3>🔍 Фильтры</h3>
       
       <div class="filter-group">
-        <label> Цена (₽)</label>
+        <label>💰 Цена (₽)</label>
         <div class="price-range">
           <input type="number" v-model="priceMin" placeholder="от">
           <span>-</span>
@@ -13,7 +13,7 @@
       </div>
 
       <div class="filter-group">
-        <label> Длительность (дни)</label>
+        <label>📅 Длительность (дни)</label>
         <div class="duration-range">
           <input type="number" v-model="durationMin" placeholder="от">
           <span>-</span>
@@ -22,7 +22,7 @@
       </div>
 
       <div class="filter-group">
-        <label> Страна</label>
+        <label>🌍 Страна</label>
         <select v-model="selectedCountry">
           <option value="">Все страны</option>
           <option v-for="country in countries" :key="country" :value="country">{{ country }}</option>
@@ -30,53 +30,38 @@
       </div>
 
       <div class="filter-group">
-        <label> Рейтинг</label>
+        <label>⭐ Рейтинг</label>
         <div class="rating-buttons">
-          <button v-for="star in 5" :key="star" 
-                  @click="selectedRating = star" 
-                  :class="{ active: selectedRating === star }"
-                  class="filter-btn">
-            {{ star }}★
-          </button>
+          <button v-for="star in 5" :key="star" @click="selectedRating = star" :class="{ active: selectedRating === star }" class="filter-btn">{{ star }}★</button>
           <button @click="selectedRating = null" class="filter-clear">Все</button>
         </div>
       </div>
 
       <div class="filter-group">
-        <label> Тип тура</label>
+        <label>🏖️ Тип тура</label>
         <div class="type-buttons">
-          <button v-for="type in tourTypes" :key="type" 
-                  @click="selectedType = type" 
-                  :class="{ active: selectedType === type }"
-                  class="filter-btn">
-            {{ type }}
-          </button>
+          <button v-for="type in tourTypes" :key="type" @click="selectedType = type" :class="{ active: selectedType === type }" class="filter-btn">{{ type }}</button>
           <button @click="selectedType = null" class="filter-clear">Все</button>
         </div>
       </div>
 
       <div class="filter-group">
-        <label> Отель</label>
+        <label>🏨 Отель</label>
         <div class="stars-buttons">
-          <button v-for="star in [5,4,3]" :key="star" 
-                  @click="selectedStars = star" 
-                  :class="{ active: selectedStars === star }"
-                  class="filter-btn">
-            {{ star }}★
-          </button>
+          <button v-for="star in [5,4,3]" :key="star" @click="selectedStars = star" :class="{ active: selectedStars === star }" class="filter-btn">{{ star }}★</button>
           <button @click="selectedStars = null" class="filter-clear">Любой</button>
         </div>
       </div>
 
       <div class="filter-group">
-        <label> Трансфер</label>
+        <label>🚗 Трансфер</label>
         <label class="checkbox-label">
           <input type="checkbox" v-model="hasTransfer"> Трансфер включён
         </label>
       </div>
 
-      <button @click="applyFilters" class="apply-btn"> Применить</button>
-      <button @click="resetFilters" class="reset-btn"> Сбросить</button>
+      <button @click="applyFilters" class="apply-btn">✅ Применить</button>
+      <button @click="resetFilters" class="reset-btn">🔄 Сбросить</button>
     </div>
 
     <div class="auth-buttons">
@@ -92,6 +77,24 @@
     <div id="globe-container"></div>
     <div v-if="isAdmin" class="admin-link">
       <router-link to="/admin">🛠️ Админ-панель</router-link>
+    </div>
+
+    <!-- Модальное окно карточки тура -->
+    <div v-if="showTourCard" class="tour-card-modal" @click.self="closeTourCard">
+      <div class="tour-card">
+        <button class="close-btn" @click="closeTourCard">✕</button>
+        <h2>{{ selectedCity?.name }}</h2>
+        <p class="country">📍 {{ selectedCity?.country }}</p>
+        <div class="tour-details">
+          <p><strong>💰 Цена:</strong> {{ selectedCity?.price }} ₽</p>
+          <p><strong>⭐ Рейтинг:</strong> {{ selectedCity?.rating || 4.5 }}</p>
+          <p><strong>🏨 Отель:</strong> {{ selectedCity?.hotel_stars || 3 }}★</p>
+          <p><strong>🚗 Трансфер:</strong> {{ selectedCity?.transfer ? 'Включён' : 'Не включён' }}</p>
+          <p><strong>🏖️ Тип тура:</strong> {{ selectedCity?.tour_type || 'Экскурсионный' }}</p>
+          <p><strong>🎫 Доступно мест:</strong> {{ selectedCity?.available_slots || 'Уточняйте' }}</p>
+        </div>
+        <button class="book-btn" @click="bookTour">✅ Забронировать</button>
+      </div>
     </div>
   </div>
 </template>
@@ -119,7 +122,9 @@ export default {
       selectedType: null,
       selectedStars: null,
       hasTransfer: false,
-      tourTypes: ['Экскурсионный', 'Пляжный', 'Горнолыжный', 'Гастрономический', 'Приключенческий']
+      tourTypes: ['Экскурсионный', 'Пляжный', 'Горнолыжный', 'Гастрономический', 'Приключенческий'],
+      showTourCard: false,
+      selectedCity: null
     }
   },
   async mounted() {
@@ -137,7 +142,6 @@ export default {
           const user = JSON.parse(userStr)
           this.isLoggedIn = true
           this.userName = user.name || user.email
-          // Проверка на админа (если email admin@mail.com)
           if (user.email === 'admin@mail.com') {
             this.isAdmin = true
           }
@@ -149,6 +153,7 @@ export default {
         this.isLoggedIn = false
       }
     },
+
     async loadCities() {
       try {
         const response = await fetch('/api/v1/destinations/coordinates')
@@ -160,6 +165,7 @@ export default {
         console.error('Ошибка загрузки городов:', error)
       }
     },
+
     initGlobe() {
       this.globe = Globe()
         .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
@@ -170,18 +176,15 @@ export default {
         .pointRadius(0.8)
         .pointLabel(d => `
           <div style="background:black; color:white; padding:10px; border-radius:8px;">
-            <b>${d.name}</b><br>
-            ${d.country}<br>
-            💰 ${d.price} ₽<br>
-            ⭐ ${d.rating || 4.5}<br>
-            🏨 ${d.hotel_stars || 3}★
+            <b>${d.name}</b><br>${d.country}<br>💰 ${d.price} ₽<br>⭐ ${d.rating || 4.5}<br>🏨 ${d.hotel_stars || 3}★
           </div>
         `)
         .onPointClick(d => {
           if (!this.isLoggedIn) {
             alert('🔐 Войдите, чтобы забронировать тур')
           } else {
-            alert(`✅ ${d.name}, ${d.country}\n⭐ Рейтинг: ${d.rating || 4.5}\n🏨 Отель: ${d.hotel_stars || 3}★\n🚗 Трансфер: ${d.transfer ? 'Да' : 'Нет'}`)
+            this.selectedCity = d
+            this.showTourCard = true
           }
         })
       
@@ -192,55 +195,24 @@ export default {
         this.globe.height(window.innerHeight)
       })
     },
+
     applyFilters() {
       let filtered = [...this.allCities]
       
-      // Цена
-      if (this.priceMin) {
-        filtered = filtered.filter(c => parseInt(c.price) >= parseInt(this.priceMin))
-      }
-      if (this.priceMax) {
-        filtered = filtered.filter(c => parseInt(c.price) <= parseInt(this.priceMax))
-      }
-      
-      // Длительность
-      if (this.durationMin) {
-        filtered = filtered.filter(c => (c.duration_days || 0) >= parseInt(this.durationMin))
-      }
-      if (this.durationMax) {
-        filtered = filtered.filter(c => (c.duration_days || 0) <= parseInt(this.durationMax))
-      }
-      
-      // Страна
-      if (this.selectedCountry) {
-        filtered = filtered.filter(c => c.country === this.selectedCountry)
-      }
-      
-      // Рейтинг
-      if (this.selectedRating) {
-        filtered = filtered.filter(c => (c.rating || 4.5) >= this.selectedRating)
-      }
-      
-      // Тип тура
-      if (this.selectedType) {
-        filtered = filtered.filter(c => c.tour_type === this.selectedType)
-      }
-      
-      // Звёздность отеля
-      if (this.selectedStars) {
-        filtered = filtered.filter(c => (c.hotel_stars || 3) >= this.selectedStars)
-      }
-      
-      // Трансфер
-      if (this.hasTransfer) {
-        filtered = filtered.filter(c => c.transfer === true)
-      }
+      if (this.priceMin) filtered = filtered.filter(c => parseInt(c.price) >= parseInt(this.priceMin))
+      if (this.priceMax) filtered = filtered.filter(c => parseInt(c.price) <= parseInt(this.priceMax))
+      if (this.durationMin) filtered = filtered.filter(c => (c.duration_days || 0) >= parseInt(this.durationMin))
+      if (this.durationMax) filtered = filtered.filter(c => (c.duration_days || 0) <= parseInt(this.durationMax))
+      if (this.selectedCountry) filtered = filtered.filter(c => c.country === this.selectedCountry)
+      if (this.selectedRating) filtered = filtered.filter(c => (c.rating || 4.5) >= this.selectedRating)
+      if (this.selectedType) filtered = filtered.filter(c => c.tour_type === this.selectedType)
+      if (this.selectedStars) filtered = filtered.filter(c => (c.hotel_stars || 3) >= this.selectedStars)
+      if (this.hasTransfer) filtered = filtered.filter(c => c.transfer === true)
       
       this.cities = filtered
-      if (this.globe) {
-        this.globe.pointsData(this.cities)
-      }
+      if (this.globe) this.globe.pointsData(this.cities)
     },
+
     resetFilters() {
       this.priceMin = ''
       this.priceMax = ''
@@ -252,14 +224,28 @@ export default {
       this.selectedStars = null
       this.hasTransfer = false
       this.cities = [...this.allCities]
-      if (this.globe) {
-        this.globe.pointsData(this.cities)
-      }
+      if (this.globe) this.globe.pointsData(this.cities)
     },
+
     logout() {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       window.location.reload()
+    },
+
+    closeTourCard() {
+      this.showTourCard = false
+      this.selectedCity = null
+    },
+
+    async bookTour() {
+      if (!this.selectedCity) return
+      try {
+        alert(`✅ Тур в ${this.selectedCity.name} забронирован!`)
+        this.closeTourCard()
+      } catch (error) {
+        alert('❌ Ошибка бронирования')
+      }
     }
   }
 }
@@ -290,20 +276,6 @@ export default {
   color: white;
   border: 1px solid rgba(255,255,255,0.2);
   box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-}
-
-.filters-sidebar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.filters-sidebar::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.1);
-  border-radius: 3px;
-}
-
-.filters-sidebar::-webkit-scrollbar-thumb {
-  background: #ffaa33;
-  border-radius: 3px;
 }
 
 .filters-sidebar h3 {
@@ -342,10 +314,6 @@ export default {
   text-align: center;
 }
 
-.price-range input::placeholder, .duration-range input::placeholder {
-  color: #aaa;
-}
-
 select {
   width: 100%;
   padding: 8px 10px;
@@ -354,10 +322,6 @@ select {
   color: white;
   border: 1px solid rgba(255,255,255,0.3);
   cursor: pointer;
-}
-
-select option {
-  background: #222;
 }
 
 .rating-buttons, .type-buttons, .stars-buttons {
@@ -377,10 +341,6 @@ select option {
   transition: all 0.2s;
 }
 
-.filter-btn:hover {
-  background: rgba(255,255,255,0.4);
-}
-
 .filter-btn.active {
   background: #ffaa33;
   color: black;
@@ -395,12 +355,6 @@ select option {
   font-size: 12px;
   background: rgba(255,255,255,0.1);
   color: #aaa;
-  transition: all 0.2s;
-}
-
-.filter-clear:hover {
-  background: rgba(255,255,255,0.3);
-  color: white;
 }
 
 .checkbox-label {
@@ -409,12 +363,6 @@ select option {
   gap: 8px;
   cursor: pointer;
   color: white;
-}
-
-.checkbox-label input {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
 }
 
 .apply-btn, .reset-btn {
@@ -434,19 +382,9 @@ select option {
   color: white;
 }
 
-.apply-btn:hover {
-  background: #45a049;
-  transform: translateY(-2px);
-}
-
 .reset-btn {
   background: #ffaa33;
   color: black;
-}
-
-.reset-btn:hover {
-  background: #ffbb44;
-  transform: translateY(-2px);
 }
 
 .auth-buttons {
@@ -487,10 +425,6 @@ select option {
   backdrop-filter: blur(5px);
 }
 
-.user-avatar {
-  font-size: 18px;
-}
-
 .user-name {
   font-weight: bold;
   color: #ffaa00;
@@ -502,10 +436,6 @@ select option {
   padding: 5px 10px;
   background: rgba(0,0,0,0.3);
   border-radius: 5px;
-}
-
-.logout-link:hover {
-  background: rgba(0,0,0,0.5);
 }
 
 .admin-link {
@@ -522,5 +452,77 @@ select option {
   color: #ffaa33;
   text-decoration: none;
   font-weight: bold;
+}
+
+/* Модальное окно */
+.tour-card-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.tour-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: white;
+  padding: 30px;
+  border-radius: 20px;
+  width: 400px;
+  max-width: 90%;
+  position: relative;
+  border: 1px solid rgba(255, 170, 51, 0.3);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: #ffaa33;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.tour-card h2 {
+  margin: 0 0 5px 0;
+  color: #ffaa33;
+}
+
+.country {
+  color: #aaa;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.tour-details {
+  margin: 20px 0;
+  line-height: 1.8;
+}
+
+.book-btn {
+  width: 100%;
+  padding: 12px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.book-btn:hover {
+  background: #45a049;
+  transform: translateY(-2px);
 }
 </style>
