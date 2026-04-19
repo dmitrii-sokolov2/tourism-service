@@ -79,21 +79,63 @@
       <router-link to="/admin">🛠️ Админ-панель</router-link>
     </div>
 
-    <!-- Модальное окно карточки тура -->
+    <!-- Модальное окно расширенного бронирования -->
     <div v-if="showTourCard" class="tour-card-modal" @click.self="closeTourCard">
       <div class="tour-card">
         <button class="close-btn" @click="closeTourCard">✕</button>
         <h2>{{ selectedCity?.name }}</h2>
         <p class="country">📍 {{ selectedCity?.country }}</p>
+        
         <div class="tour-details">
-          <p><strong>💰 Цена:</strong> {{ selectedCity?.price }} ₽</p>
+          <p><strong>💰 Цена за день:</strong> {{ Math.round(selectedCity?.price / (selectedCity?.duration_days || 7)) }} ₽</p>
           <p><strong>⭐ Рейтинг:</strong> {{ selectedCity?.rating || 4.5 }}</p>
           <p><strong>🏨 Отель:</strong> {{ selectedCity?.hotel_stars || 3 }}★</p>
-          <p><strong>🚗 Трансфер:</strong> {{ selectedCity?.transfer ? 'Включён' : 'Не включён' }}</p>
-          <p><strong>🏖️ Тип тура:</strong> {{ selectedCity?.tour_type || 'Экскурсионный' }}</p>
-          <p><strong>🎫 Доступно мест:</strong> {{ selectedCity?.available_slots || 'Уточняйте' }}</p>
+          <p><strong>🚗 Трансфер:</strong> {{ selectedCity?.transfer ? '✅ Включён' : '❌ Не включён' }}</p>
         </div>
-        <button class="book-btn" @click="bookTour">✅ Забронировать</button>
+
+        <div class="booking-form">
+          <h3>📅 Оформление бронирования</h3>
+          
+          <div class="form-row">
+            <label>👥 Количество человек:</label>
+            <input type="number" v-model.number="bookingData.persons" min="1" max="10" @input="calculateTotal">
+          </div>
+
+          <div class="form-row">
+            <label>🏨 Отель:</label>
+            <select v-model="bookingData.hotelStars" @change="calculateTotal">
+              <option :value="3">3★ (стандарт)</option>
+              <option :value="4">4★ (комфорт)</option>
+              <option :value="5">5★ (люкс)</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label>🍽️ Питание:</label>
+            <select v-model="bookingData.meal" @change="calculateTotal">
+              <option value="none">Без питания</option>
+              <option value="breakfast">Только завтраки</option>
+              <option value="half">Полупансион</option>
+              <option value="full">Всё включено</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label>📅 Дата начала:</label>
+            <input type="date" v-model="bookingData.startDate" @change="calculateTotal">
+          </div>
+
+          <div class="form-row">
+            <label>📅 Дата окончания:</label>
+            <input type="date" v-model="bookingData.endDate" @change="calculateTotal">
+          </div>
+
+          <div class="total-price">
+            <h3>💰 Итоговая цена: <span>{{ totalPrice.toLocaleString() }} ₽</span></h3>
+          </div>
+
+          <button class="book-btn" @click="bookTourExtended">✅ Забронировать сейчас</button>
+        </div>
       </div>
     </div>
   </div>
@@ -124,7 +166,21 @@ export default {
       hasTransfer: false,
       tourTypes: ['Экскурсионный', 'Пляжный', 'Горнолыжный', 'Гастрономический', 'Приключенческий'],
       showTourCard: false,
-      selectedCity: null
+      selectedCity: null,
+      bookingData: {
+        persons: 1,
+        hotelStars: 3,
+        meal: 'none',
+        startDate: '',
+        endDate: ''
+      },
+      totalPrice: 0,
+      mealPrices: {
+        none: 1.0,
+        breakfast: 1.15,
+        half: 1.35,
+        full: 1.6
+      }
     }
   },
   async mounted() {
@@ -185,6 +241,7 @@ export default {
           } else {
             this.selectedCity = d
             this.showTourCard = true
+            this.calculateTotal()
           }
         })
       
@@ -238,13 +295,64 @@ export default {
       this.selectedCity = null
     },
 
-    async bookTour() {
+    calculateTotal() {
       if (!this.selectedCity) return
+      
+      const basePricePerDay = this.selectedCity.price / (this.selectedCity.duration_days || 7)
+      const hotelMultiplier = this.bookingData.hotelStars / 3
+      const mealMultiplier = this.mealPrices[this.bookingData.meal] || 1
+      
+      let days = this.selectedCity.duration_days || 7
+      if (this.bookingData.startDate && this.bookingData.endDate) {
+        const start = new Date(this.bookingData.startDate)
+        const end = new Date(this.bookingData.endDate)
+        days = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)))
+      }
+      
+      this.totalPrice = Math.round(
+        basePricePerDay * days * this.bookingData.persons * hotelMultiplier * mealMultiplier
+      )
+    },
+
+    async bookTourExtended() {
+      if (!this.selectedCity) return
+      
+      const token = localStorage.getItem('token')
+      if (!token) {
+        alert('🔐 Войдите, чтобы забронировать тур')
+        return
+      }
+      
+      const booking = {
+        destination_id: this.selectedCity.id,
+        persons: this.bookingData.persons,
+        hotel_stars: this.bookingData.hotelStars,
+        meal: this.bookingData.meal,
+        start_date: this.bookingData.startDate,
+        end_date: this.bookingData.endDate,
+        total_price: this.totalPrice
+      }
+      
       try {
-        alert(`✅ Тур в ${this.selectedCity.name} забронирован!`)
-        this.closeTourCard()
+        const response = await fetch('/api/book', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(booking)
+        })
+        
+        const data = await response.json()
+        
+        if (response.ok) {
+          alert(`✅ Тур в ${this.selectedCity.name} успешно забронирован!\n💰 Итого: ${this.totalPrice.toLocaleString()} ₽`)
+          this.closeTourCard()
+        } else {
+          alert(`❌ Ошибка: ${data.error || 'Попробуйте позже'}`)
+        }
       } catch (error) {
-        alert('❌ Ошибка бронирования')
+        alert('❌ Ошибка соединения')
       }
     }
   }
@@ -265,7 +373,7 @@ export default {
   position: fixed;
   top: 80px;
   left: 20px;
-  width: 440px;
+  width: 320px;
   max-height: calc(100vh - 100px);
   overflow-y: auto;
   background: rgba(0, 0, 0, 0.9);
@@ -454,7 +562,7 @@ select {
   font-weight: bold;
 }
 
-/* Модальное окно */
+/* Модальное окно расширенного бронирования */
 .tour-card-modal {
   position: fixed;
   top: 0;
@@ -474,8 +582,10 @@ select {
   color: white;
   padding: 30px;
   border-radius: 20px;
-  width: 400px;
+  width: 450px;
   max-width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
   position: relative;
   border: 1px solid rgba(255, 170, 51, 0.3);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
@@ -506,6 +616,53 @@ select {
 .tour-details {
   margin: 20px 0;
   line-height: 1.8;
+}
+
+.booking-form {
+  margin-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  padding-top: 15px;
+}
+
+.booking-form h3 {
+  color: #ffaa33;
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+.form-row {
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form-row label {
+  flex: 1;
+  font-size: 14px;
+}
+
+.form-row input, .form-row select {
+  flex: 2;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+.total-price {
+  margin: 15px 0;
+  text-align: center;
+  background: rgba(255,170,51,0.2);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.total-price span {
+  color: #ffaa33;
+  font-size: 24px;
+  font-weight: bold;
 }
 
 .book-btn {
