@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, Blueprint
+from fastapi import FastAPI, APIRouter
 from flask_restful import Api
 from flask_migrate import Migrate
 from sqlalchemy import select, text
@@ -11,18 +11,19 @@ from core.extensions import db
 from resources.user_resources import UserListResource, UserResource, UserBulkDeleteResource, UserBookTourResource
 from resources.destination_resources import DestinationListResource, DestinationResource
 from errors.handlers import register_error_handlers
-from api.v1.routes.auth_routes import auth_bp
-from api.v1.routes.health_routes import health_bp
-from api.v1.routes.stats_routes import stats_bp
-from api.v1.routes.booking_routes import booking_bp
-from api.v1.routes.tour_routes import tour_bp
+from api.v1.routes.auth_routes import auth_router
+from api.v1.routes.health_routes import health_router
+from api.v1.routes.stats_routes import stats_router
+from api.v1.routes.booking_routes import booking_router
+from api.v1.routes.tour_routes import tour_router
 from core.logging_config import setup_logging
 from flask import send_from_directory
 from services.email_service import EmailService
 from flask_cors import CORS
 
 def create_app():
-    app = Flask(__name__)
+    # app = Flask(__name__)
+    app = FastAPI()
     CORS(app)
 
     app.config.from_object(Config)
@@ -35,20 +36,20 @@ def create_app():
 
     register_error_handlers(app)
 
-    api_v1_bp = Blueprint('api_v1', __name__, url_prefix='/api/v1/')
-    api_v1 = Api(api_v1_bp)
+    api_v1 = APIRouter(prefix='/api/v1')
+    # api_v1_resource = Api(api_v1)
 
     logger = setup_logging()
 
-    @api_v1_bp.route('/')
+    @api_v1.get('/')
     def index():
         logger.info("GET / - открываем глобус")
         return send_from_directory('static', 'index.html')
 
-    @api_v1_bp.route('/api-info')
+    @api_v1.get('/api-info')
     def api_info():
         logger.info("GET /api-info - информация об API")
-        return jsonify({
+        return {
             "message": "Tourism REST Service",
             "version": "3.0",
             "endpoints": {
@@ -58,9 +59,9 @@ def create_app():
                 "available_tours": "/api/tours/available",
                 "health": "/api/health"
             }
-        })
+        }
 
-    @api_v1_bp.route('/destinations/coordinates')
+    @api_v1.get('/destinations/coordinates')
     def get_destinations_coordinates():
         try:
             destinations = Destination.query.all()
@@ -92,7 +93,7 @@ def create_app():
                      'price': '45000', 'rating': 4.7, 'tour_type': 'Пляжный', 'hotel_stars': 4, 'transfer': False}
                 ]
 
-            return jsonify(result)
+            return result
 
         except Exception as e:
             print(f"Ошибка: {str(e)}")
@@ -107,7 +108,7 @@ def create_app():
                 {'id': 3, 'name': 'Бали', 'country': 'Индонезия', 'lat': -8.3405, 'lng': 115.0920, 'tours': 8,
                  'price': '45000', 'rating': 4.7, 'tour_type': 'Пляжный', 'hotel_stars': 4, 'transfer': False}
             ]
-            return jsonify(test_data)
+            return test_data
 
         except Exception as e:
             print(f"Ошибка в /api/destinations/coordinates: {str(e)}")
@@ -119,41 +120,41 @@ def create_app():
                 {'id': 2, 'name': 'Токио', 'country': 'Япония', 'lat': 35.6762, 'lng': 139.6503, 'tours': 3, 'price': '90000'},
                 {'id': 3, 'name': 'Бали', 'country': 'Индонезия', 'lat': -8.3405, 'lng': 115.0920, 'tours': 8, 'price': '45000'}
             ]
-            return jsonify(test_data)
+            return test_data
 
-    @api_v1_bp.route('/test-mail')
-    def test_mail():
-        email_service = EmailService(
-            Config.MAIL_SERVER,
-            Config.MAIL_PORT,
-            Config.MAIL_USERNAME,
-            Config.MAIL_PASSWORD,
-            Config.MAIL_FROM
-        )
+    # @api_v1.get('/test-mail')
+    # def test_mail():
+    #     email_service = EmailService(
+    #         Config.MAIL_SERVER,
+    #         Config.MAIL_PORT,
+    #         Config.MAIL_USERNAME,
+    #         Config.MAIL_PASSWORD,
+    #         Config.MAIL_FROM
+    #     )
+    #
+    #     email_service.send_email(
+    #         "test@test.com",
+    #         "test mail",
+    #         "jaja",
+    #     )
+    #
+    #     return "email sent"
 
-        email_service.send_email(
-            "test@test.com",
-            "test mail",
-            "jaja",
-        )
+    api_v1_resource.add_resource(UserListResource, '/users')
+    api_v1_resource.add_resource(UserResource, '/users/<int:id>')
+    api_v1_resource.add_resource(UserBulkDeleteResource, '/users/bulk-delete')
+    api_v1_resource.add_resource(UserBookTourResource, '/users/<int:user_id>/book-tour/<int:tour_id>')
 
-        return "email sent"
+    api_v1_resource.add_resource(DestinationListResource, '/destinations')
+    api_v1_resource.add_resource(DestinationResource, '/destinations/<int:id>')
 
-    api_v1.add_resource(UserListResource, '/users')
-    api_v1.add_resource(UserResource, '/users/<int:id>')
-    api_v1.add_resource(UserBulkDeleteResource, '/users/bulk-delete')
-    api_v1.add_resource(UserBookTourResource, '/users/<int:user_id>/book-tour/<int:tour_id>')
-
-    api_v1.add_resource(DestinationListResource, '/destinations')
-    api_v1.add_resource(DestinationResource, '/destinations/<int:id>')
-
-    api_v1_bp.register_blueprint(auth_bp, url_prefix='/auth')
-    api_v1_bp.register_blueprint(booking_bp, url_prefix='/bookings')
-    api_v1_bp.register_blueprint(health_bp)
-    api_v1_bp.register_blueprint(stats_bp, url_prefix='/stats')
-    api_v1_bp.register_blueprint(tour_bp)
-    # api_v1_bp.register_blueprint(destinations_bp, url_prefix='/destinations')
-    app.register_blueprint(api_v1_bp)
+    api_v1.include_router(auth_router)
+    api_v1.include_router(booking_router)
+    api_v1.include_router(health_router)
+    api_v1.include_router(stats_router)
+    api_v1.include_router(tour_router)
+    # api_v1.include_router(destinations_bp, url_prefix='/destinations')
+    app.include_router(api_v1)
 
     return app
 

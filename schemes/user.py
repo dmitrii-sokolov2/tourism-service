@@ -10,3 +10,7 @@ class UserRegisterSchema(BaseModel):
     @classmethod
     def normalize_email(cls, v):
         return v.lower()
+
+class UserLoginSchema(BaseModel):
+    email: EmailStr
+    password: str

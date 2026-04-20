@@ -2,13 +2,12 @@ import bcrypt, jwt, secrets, hashlib
 from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
-from pydantic import ValidationError
-from flask import abort
+from pydantic import BaseModel
+from fastapi import HTTPException
 
 from config import Config
 from core.extensions import db
 from models.models import RefreshToken, User
-from schemes.user import UserRegisterSchema
 
 SECRET_KEY = Config.SECRET_KEY
 
@@ -48,16 +47,11 @@ def create_refresh_token(user_id: int) -> str:
 
     return token
 
-def register_user(data: dict) -> dict:
-    try:
-        user_data = UserRegisterSchema(**data)
-    except ValidationError as e:
-        abort(409, description=e.errors())
-
+def register_user(data: BaseModel) -> dict:
     password_hash = hash_password(data["password"])
 
     user = User(
-        **user_data.model_dump(exclude={"password"}),
+        **data.model_dump(exclude={"password"}),
         password_hash=password_hash
     )
 
@@ -66,7 +60,8 @@ def register_user(data: dict) -> dict:
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        abort(400, description="user already exists")
+
+        raise HTTPException(status_code=400, detail="user already exists")
 
     return {
         "id": user.id,
@@ -77,10 +72,10 @@ def login_user(email, password) -> dict:
     user = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
 
     if user is None:
-        abort(404, description="user does not exist")
+        raise HTTPException(status_code=404, detail="User does not exist")
 
     if not verify_password(password, user.password_hash):
-        abort(401, description="invalid password")
+        raise HTTPException(status_code=401, detail="invalid password")
 
     access_token = create_access_token(user.id, user.email)
     refresh_token = create_refresh_token(user.id)

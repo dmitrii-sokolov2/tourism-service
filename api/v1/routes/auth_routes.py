@@ -1,29 +1,32 @@
-from flask import Blueprint, request, jsonify, abort
+from fastapi import APIRouter, HTTPException
+from pydantic import ValidationError
+from schemes.user import UserRegisterSchema, UserLoginSchema
 from services.auth_service import register_user, login_user
 
-auth_bp = Blueprint('auth', __name__)
+auth_router = APIRouter(prefix='/auth', tags=["auth"])
 
-@auth_bp.route('/register', methods=['POST'])
-def register():
-    data = request.get_json()
+@auth_router.post('/register', status_code=201)
+def register(payload: UserRegisterSchema):
+    if not payload:
+        raise HTTPException(status_code=400, detail="JSON body required")
 
-    if not data:
-        abort(400, description="JSON body required")
+    try:
+        user = register_user(payload)
+    except ValidationError as e:
 
-    user = register_user(data)
+        raise HTTPException(status_code=409, detail=e.json())
 
-    return jsonify({"message": "user has been created", "data": user}), 201
+    return {"message": "user has been created",
+            "data": user}
 
-@auth_bp.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-
-    if not data:
-        abort(400, description="JSON body required")
+@auth_router.post('/login', status_code=200)
+def login(payload: UserLoginSchema):
+    if not payload:
+        raise HTTPException(status_code=400, detail="JSON body required")
 
     result = login_user(
-        data["email"].lower(),
-        data["password"]
+        payload.email.lower(),
+        payload.password
     )
 
-    return jsonify(result), 200
+    return result

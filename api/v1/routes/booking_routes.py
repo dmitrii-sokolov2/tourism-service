@@ -1,16 +1,16 @@
-from flask import Blueprint, jsonify, request
+from fastapi import APIRouter, HTTPException
 from services.tourism_services import UserService, TourService, BookingService
 from models.models import db
 
 from core.logging_config import setup_logging
 
-booking_bp = Blueprint('booking', __name__)
+booking_router = APIRouter(prefix='/booking', tags=["booking"])
+
 logger = setup_logging()
 
-@booking_bp.route('/bulk', methods=['POST'])
-def bulk_bookings():
+@booking_router.post('/bulk')
+def bulk_bookings(data): #not sure bout this
     try:
-        data = request.get_json()
         bookings = data.get('bookings', [])
         results = []
         for booking in bookings:
@@ -39,8 +39,9 @@ def bulk_bookings():
                     "error": str(e)
                 })
         
-        return jsonify({"results": results})
+        return {"results": results}
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500  
+
+        return {"error": str(e)}, 500

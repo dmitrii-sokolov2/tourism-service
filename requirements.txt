@@ -12,3 +12,6 @@ PyYAML==6.0.3
 gunicorn==25.1.0
 flask-cors==4.0.0
 flask-migrate==4.1.0
+
+fastapi==0.135.3
+alembic==1.18.4
