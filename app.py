@@ -1,15 +1,14 @@
 from fastapi import FastAPI, APIRouter
-from flask_restful import Api
-from flask_migrate import Migrate
-from sqlalchemy import select, text
+# from flask_migrate import Migrate
+
+from sqlalchemy import select
 import os
 
 from config import Config
-# from models.models import User, Destination, Tour
 from models.models import *
 from core.extensions import db
-from resources.user_resources import UserListResource, UserResource, UserBulkDeleteResource, UserBookTourResource
-from resources.destination_resources import DestinationListResource, DestinationResource
+from api.v1.routes.user_routes import user_router
+from api.v1.routes.destination_routes import destination_router
 from errors.handlers import register_error_handlers
 from api.v1.routes.auth_routes import auth_router
 from api.v1.routes.health_routes import health_router
@@ -18,11 +17,9 @@ from api.v1.routes.booking_routes import booking_router
 from api.v1.routes.tour_routes import tour_router
 from core.logging_config import setup_logging
 from flask import send_from_directory
-from services.email_service import EmailService
 from flask_cors import CORS
 
 def create_app():
-    # app = Flask(__name__)
     app = FastAPI()
     CORS(app)
 
@@ -32,12 +29,9 @@ def create_app():
     migrate = Migrate()
     migrate.init_app(app, db)
 
-    import models.models
-
     register_error_handlers(app)
 
     api_v1 = APIRouter(prefix='/api/v1')
-    # api_v1_resource = Api(api_v1)
 
     logger = setup_logging()
 
@@ -140,20 +134,21 @@ def create_app():
     #
     #     return "email sent"
 
-    api_v1_resource.add_resource(UserListResource, '/users')
-    api_v1_resource.add_resource(UserResource, '/users/<int:id>')
-    api_v1_resource.add_resource(UserBulkDeleteResource, '/users/bulk-delete')
-    api_v1_resource.add_resource(UserBookTourResource, '/users/<int:user_id>/book-tour/<int:tour_id>')
-
-    api_v1_resource.add_resource(DestinationListResource, '/destinations')
-    api_v1_resource.add_resource(DestinationResource, '/destinations/<int:id>')
+    # api_v1_resource.add_resource(UserListResource, '/users')
+    # api_v1_resource.add_resource(UserResource, '/users/<int:id>')
+    # api_v1_resource.add_resource(UserBulkDeleteResource, '/users/bulk-delete')
+    # api_v1_resource.add_resource(UserBookTourResource, '/users/<int:user_id>/book-tour/<int:tour_id>')
+    #
+    # api_v1_resource.add_resource(DestinationListResource, '/destinations')
+    # api_v1_resource.add_resource(DestinationResource, '/destinations/<int:id>')
 
     api_v1.include_router(auth_router)
     api_v1.include_router(booking_router)
     api_v1.include_router(health_router)
     api_v1.include_router(stats_router)
     api_v1.include_router(tour_router)
-    # api_v1.include_router(destinations_bp, url_prefix='/destinations')
+    api_v1.include_router(user_router)
+    api_v1.include_router(destination_router)
     app.include_router(api_v1)
 
     return app

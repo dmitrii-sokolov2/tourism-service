@@ -1,13 +1,9 @@
-from http.client import HTTPException
+from fastapi import APIRouter, HTTPException
+from sqlalchemy import select
 
-# from resources.base_resource import BaseResource
 from services.tourism_services import DestinationService
 from models.models import db, Destination
-from sqlalchemy import select
-# from flask import request
-from fastapi import APIRouter, HTTPException
 from schemes.destination import DestinationCreateSchema, DestinationUpdateSchema
-
 from logger_config import destination_logger, api_logger
 
 from exceptions.custom_exceptions import (
@@ -17,8 +13,6 @@ from exceptions.custom_exceptions import (
 )
 
 from validators.destination_validator import DestinationValidator
-from transfer.problem_details import ProblemDetails
-from jsonschema.exceptions import ValidationError
 
 destination_logger = destination_logger
 destination_router = APIRouter(prefix='/destinations')
@@ -112,7 +106,7 @@ def get_destination(id: int):
         )
 
 @destination_router.put('/{id}', status_code=200)
-def put(id: int, payload: DestinationUpdateSchema):
+def update_destination(id: int, payload: DestinationUpdateSchema):
     try:
         api_logger.info(f"PUT /api/v1/destinations/{id} - обновление направления")
         destination = DestinationService.get_destination_by_id(id)
@@ -159,7 +153,7 @@ def put(id: int, payload: DestinationUpdateSchema):
         )
 
 @destination_router.delete('/{id}', status_code=200)
-def delete(id: int):
+def delete_destination(id: int):
     try:
         api_logger.info(f"DELETE /api/v1/destinations/{id} - удаление направления")
 

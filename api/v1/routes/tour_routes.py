@@ -1,9 +1,9 @@
-from schemes.tour import TourUpdateSchema, TourCreateSchema
+from fastapi import APIRouter, HTTPException
+from sqlalchemy import select
+
 from services.tourism_services import TourService, DestinationService
 from models.models import db, Tour, Destination
-from sqlalchemy import select
-from fastapi import APIRouter, HTTPException, Query
-from typing import Optional
+from schemes.tour import TourCreateSchema
 from logger_config import tour_logger, api_logger
 
 from exceptions.custom_exceptions import (
@@ -14,81 +14,61 @@ from exceptions.custom_exceptions import (
 )
 
 from validators.tour_validator import TourValidator
-from transfer.problem_details import ProblemDetails
 from jsonschema.exceptions import ValidationError
 
-tour_router = APIRouter(prefix='/tours', tags=['tours'])
+tour_router = APIRouter(prefix='/tours', tags=['Tours'])
 tour_logger = tour_logger
 api_logger = api_logger
 
 tour_validator = TourValidator()
 
-@tour_router.get("")
-def get_all_tours(
-    sort: Optional[str] = Query(default=None),
-    order: str = Query(default="asc")
-):
+@tour_router.get('', status_code=201)
+def get_tours():
     try:
         api_logger.info("GET /api/tours - получение списка туров")
-
-        query = db.session.query(Tour).join(Tour.destination)
-
-        allowed_fields = {
-            "price": Destination.price,
-            "name": Destination.name,
-            "duration_days": Destination.duration_days,
-            "start_date": Tour.start_date,
-            "available_slots": Tour.available_slots,
-        }
-
-        if sort in allowed_fields:
-            column = allowed_fields[sort]
-
-            if order == "desc":
-                query = query.order_by(column.desc())
-            else:
-                query = query.order_by(column.asc())
-
-            tours = query.all()
-            tour_logger.info(f"Найдено туров: {len(tours)}")
-
-        else:
-            tours = query.all()
-            tour_logger.info(f"Найдено туров: {len(tours)}")
+        tours = db.session.execute(select(Tour)).scalars().all()
+        tour_logger.info(f"Найдено туров: {len(tours)}")
 
         return [t.to_dict() for t in tours]
 
     except Exception as e:
-        tour_logger.error(
-            f"Ошибка при получении списка туров: {str(e)}",
-            exc_info=True
-        )
+        tour_logger.error(f"Ошибка при получении списка туров: {str(e)}", exc_info=True)
 
-        raise HTTPException(status_code=500, detail="Failed to fetch tours")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@tour_router.post('')
+@tour_router.post('', status_code=200)
 def post_tour(payload: TourCreateSchema):
     try:
         api_logger.info(
-            f"POST /api/tours - создание тура для направления {payload.destination_id}"
+            f'POST /api/v1/tours - создание тура для направления {payload.destination_id}'
         )
 
         data = payload.model_dump()
-        tour_logger.debug(f"Данные для создания тура: {data}")
+
+        try:
+            tour_validator.validate_tour(data, 'add')
+
+        except ValidationError as e:
+            errors = tour_validator.validate_with_details(data, 'add')
+
+            error_details = [
+                {
+                    "field": ".".join(str(p) for p in err.path),
+                    "message": err.message,
+                    "value": err.instance
+                }
+                for err in errors
+            ]
+
+            raise HTTPException(status_code=422, detail=error_details)
 
         TourService.validate_tour_creation(data)
 
-        destination = db.session.get(Destination, payload.destination_id)
+        destination = db.session.get(Destination, data.get('destination_id'))
         if not destination:
-            raise HTTPException(status_code=404, detail="Destination not found")
+            raise HTTPException(status_code=404, detail=f'Destination {payload.destination_id} not found')
 
-        tour = Tour(
-            destination_id=payload.destination_id,
-            start_date=payload.start_date,
-            end_date=payload.end_date,
-            available_slots=payload.available_slots,
-            is_active=payload.is_active
-        )
+        tour = Tour(**data)
 
         db.session.add(tour)
         db.session.commit()
@@ -99,92 +79,159 @@ def post_tour(payload: TourCreateSchema):
 
         return tour.to_dict()
 
-    except (TourValidationException, TourDateException, DestinationNotFoundException) as e:
+    except (TourValidationException, TourDateException) as e:
         db.session.rollback()
-        raise HTTPException(status_code=422, detail=str(e))
 
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         db.session.rollback()
-        raise HTTPException(status_code=500, detail="Failed to create tour")
+        tour_logger.error(
+            f'Ошибка при создании тура: {str(e)}',
+            exc_info=True
+        )
 
-@tour_router.get('/{id}')
-def get_tour(tour_id: int):
+        raise HTTPException(
+            status_code=500,
+            detail='Failed to create tour'
+        )
+
+@tour_router.get('/{id}', status_code=200)
+def get_tour(id: int):
     try:
-        api_logger.info(f"GET /api/vi/tours/{tour_id} - получение тура")
-        tour = TourService.get_tour_by_id(tour_id)
-        tour_logger.debug(f"Тур найден: ID {tour.id}, направление: {tour.destination.name}")
-
-        return tour.to_dict()
-    except TourNotFoundException:
-        tour_logger.warning(f"Тур с ID {tour_id} не найден")
-        raise HTTPException(status_code=404, detail="Tour not found")
-    except Exception as e:
-        tour_logger.error(f"Ошибка при получении тура {tour_id}: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to fetch tour")
-
-@tour_router.put('/{id}')
-def put_tour(id: int, payload: TourUpdateSchema):
-    try:
-        api_logger.info(f"PUT /api/tours/{id} - обновление тура")
+        api_logger.info(f"GET /api/v1/tours/{id} - получение тура")
 
         tour = TourService.get_tour_by_id(id)
-        if not tour:
-            raise HTTPException(status_code=404, detail="Tour not found")
+
+        tour_logger.debug(
+            f"Тур найден: ID {tour.id}, направление: {tour.destination.name}"
+        )
+
+        return tour.to_dict()
+
+    except TourNotFoundException:
+        tour_logger.warning(f"Тур с ID {id} не найден")
+
+        raise HTTPException(status_code=404, detail=f'Tour {id} not found')
+
+    except Exception as e:
+        tour_logger.error(
+            f"Ошибка при получении тура {id}: {str(e)}",
+            exc_info=True
+        )
+
+        raise HTTPException(status_code=500, detail='Failed to fetch tour')
+
+@tour_router.put('/{id}', status_code=200)
+def update_tour(id: int, payload: TourCreateSchema):
+    try:
+        api_logger.info(f"PUT /api/v1/tours/{id} - обновление тура")
+
+        tour = TourService.get_tour_by_id(id)
 
         data = payload.model_dump(exclude_unset=True)
+
+        if not data:
+            raise HTTPException(
+                status_code=400,
+                detail='No data provided for update'
+            )
+
         tour_logger.debug(f"Данные для обновления тура {id}: {data}")
 
-        if "destination_id" in data:
-            DestinationService.get_destination_by_id(data["destination_id"])
+        try:
+            tour_validator.validate_tour(data, 'update')
+        except ValidationError:
+            errors = tour_validator.validate_with_details(data, 'update')
+            error_details = [
+                {
+                    "field": ".".join(str(p) for p in err.path),
+                    "message": err.message,
+                    "value": err.instance
+                }
+                for err in errors
+            ]
 
-        if "start_date" in data or "end_date" in data:
-            start_date = data.get("start_date", tour.start_date)
-            end_date = data.get("end_date", tour.end_date)
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "type": "Validation Error",
+                    "title": "Ошибка валидации данных тура",
+                    "errors": error_details
+                }
+            )
 
+        if 'destination_id' in data and data['destination_id'] != tour.destination_id:
+            DestinationService.get_destination_by_id(data['destination_id'])
+
+        if 'start_date' in data or 'end_date' in data:
             from datetime import datetime
 
+            start_date = data.get('start_date', tour.start_date)
+            end_date = data.get('end_date', tour.end_date)
+
             try:
-                start = datetime.strptime(start_date, "%Y-%m-%d")
-                end = datetime.strptime(end_date, "%Y-%m-%d")
+                start = datetime.strptime(start_date, '%Y-%m-%d')
+                end = datetime.strptime(end_date, '%Y-%m-%d')
 
                 if end <= start:
                     raise TourDateException(start_date, end_date)
 
             except ValueError:
-                raise HTTPException(
-                    status_code=422,
-                    detail="Invalid date format. Use YYYY-MM-DD"
+                raise TourValidationException(
+                    'dates',
+                    f"{start_date}/{end_date}",
+                    "Некорректный формат дат. Используйте YYYY-MM-DD"
                 )
 
-        for field, value in data.items():
-            setattr(tour, field, value)
+        if 'available_slots' in data and data['available_slots'] < 0:
+            raise TourValidationException(
+                'available_slots',
+                data['available_slots'],
+                "Количество мест не может быть отрицательным")
+
+        # tour.destination_id = data.get('destination_id', tour.destination_id)
+        # tour.start_date = data.get('start_date', tour.start_date)
+        # tour.end_date = data.get('end_date', tour.end_date)
+        # tour.available_slots = data.get('available_slots', tour.available_slots)
+        # tour.is_active = data.get('is_active', tour.is_active)
+
+        for key, value in data.items():
+            setattr(tour, key, value)
 
         db.session.commit()
+        tour_logger.info(f"Тур обновлен: ID {tour.id}")
 
-        return {
-            "message": "tour updated",
-            "data": tour.to_dict()
-        }
+        return tour.to_dict()
 
-    except TourNotFoundException:
-        raise HTTPException(status_code=404, detail="Tour not found")
+    except TourNotFoundException as e:
+        tour_logger.warning(f"Тур с ID {id} не найден для обновления")
+
+        raise HTTPException(status_code=404, detail=f'Tour {id} not found')
 
     except (TourValidationException, TourDateException, DestinationNotFoundException) as e:
         db.session.rollback()
+        tour_logger.warning(f"Ошибка валидации при обновлении тура {id}: {str(e)}")
+
         raise HTTPException(status_code=422, detail=str(e))
 
     except Exception as e:
         db.session.rollback()
-        raise HTTPException(status_code=500, detail="Failed to update tour")
+        tour_logger.error(
+            f"Неожиданная ошибка при обновлении тура {id}: {str(e)}",
+            exc_info=True
+        )
 
-@tour_router.delete('/{id}')
+        raise HTTPException(status_code=500, detail='Failed to fetch tour')
+
+@tour_router.delete('/{id}', status_code=204)
 def delete_tour(id: int):
     try:
-        api_logger.info(f"DELETE /api/tours/{id} - удаление тура")
+        api_logger.info(f"DELETE /api/v1/tours/{id} - удаление тура")
         tour = TourService.get_tour_by_id(id)
 
         if tour.users:
             tour_logger.warning(f"Попытка удаления тура с активными бронированиями: {len(tour.users)} бронирований")
+
             raise TourValidationException(
                 'bookings',
                 len(tour.users),
@@ -199,23 +246,31 @@ def delete_tour(id: int):
 
     except TourNotFoundException as e:
         tour_logger.warning(f"Тур с ID {id} не найден для удаления")
-        raise HTTPException(status_code=404, detail="Tour not found")
+
+        raise HTTPException(status_code=404, detail=f'Tour {id} not found')
+
     except TourValidationException as e:
         db.session.rollback()
         tour_logger.warning(f"Ошибка валидации при удалении тура {id}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to delete tour")
+
+        raise HTTPException(status_code=422, detail=str(e))
+
     except Exception as e:
         db.session.rollback()
         tour_logger.error(f"Неожиданная ошибка при удалении тура {id}: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to delete tour")
 
-@tour_router.get('/available')
-def get_available():
+        raise HTTPException(status_code=500, detail='Failed to fetch tour')
+
+@tour_router.get('/available', status_code=201)
+def get_available_tours():
     try:
-        api_logger.info("GET /api/tours/available - получение доступных туров")
+        api_logger.info("GET /api/v1/tours/available - получение доступных туров")
         available_tours = TourService.get_available_tours()
         tour_logger.info(f"Найдено доступных туров: {len(available_tours)}")
+
         return [tour.to_dict() for tour in available_tours]
+
     except Exception as e:
         tour_logger.error(f"Ошибка при получении доступных туров: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to fetch available tours")
+
+        raise HTTPException(status_code=500, detail='Failed to fetch available tours')
