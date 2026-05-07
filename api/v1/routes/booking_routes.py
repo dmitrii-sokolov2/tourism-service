@@ -1,15 +1,17 @@
-from fastapi import APIRouter, HTTPException
-from services.tourism_services import UserService, TourService, BookingService
-from models.models import db
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
-from core.logging_config import setup_logging
+from services.tourism_services import UserService, TourService, BookingService
+from core.database import get_db
+
+from logging import getLogger
 
 booking_router = APIRouter(prefix='/booking', tags=["booking"])
 
-logger = setup_logging()
+logger = getLogger(__name__)
 
 @booking_router.post('/bulk')
-def bulk_bookings(data): #not sure bout this
+def bulk_bookings(data, db: Session = Depends(get_db)):
     try:
         bookings = data.get('bookings', [])
         results = []
@@ -22,7 +24,7 @@ def bulk_bookings(data): #not sure bout this
                 tour = TourService.get_tour_by_id(tour_id)
                 
                 result = BookingService.create_booking(user, tour)
-                db.session.commit()
+                db.commit()
                 
                 results.append({
                     "status": "success", 
@@ -31,7 +33,7 @@ def bulk_bookings(data): #not sure bout this
                     "message": "Бронирование успешно"
                 })
             except Exception as e:
-                db.session.rollback()
+                db.rollback()
                 results.append({
                     "status": "error", 
                     "user_id": booking.get('user_id'), 
@@ -42,6 +44,6 @@ def bulk_bookings(data): #not sure bout this
         return {"results": results}
         
     except Exception as e:
-        db.session.rollback()
+        db.rollback()
 
         return {"error": str(e)}, 500

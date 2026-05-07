@@ -3,11 +3,12 @@ from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
 from pydantic import BaseModel
-from fastapi import HTTPException
+from fastapi import HTTPException, Depends
+from sqlalchemy.orm import Session
 
 from config import Config
-from core.extensions import db
 from models.models import RefreshToken, User
+from core.database import get_db
 
 SECRET_KEY = Config.SECRET_KEY
 
@@ -32,7 +33,7 @@ def create_access_token(user_id: int, email: str) -> str:
 def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
-def create_refresh_token(user_id: int) -> str:
+def create_refresh_token(user_id: int, db: Session = Depends(get_db)) -> str:
     token = secrets.token_urlsafe(32)
     token_hash = hash_token(token)
 
@@ -42,12 +43,12 @@ def create_refresh_token(user_id: int) -> str:
         expires_at=datetime.utcnow() + timedelta(days=7)
     )
 
-    db.session.add(refresh)
-    db.session.commit()
+    db.add(refresh)
+    db.commit()
 
     return token
 
-def register_user(data: BaseModel) -> dict:
+def register_user(data: BaseModel, db: Session = Depends(get_db)) -> dict:
     password_hash = hash_password(data["password"])
 
     user = User(
@@ -56,10 +57,10 @@ def register_user(data: BaseModel) -> dict:
     )
 
     try:
-        db.session.add(user)
-        db.session.commit()
+        db.add(user)
+        db.commit()
     except IntegrityError:
-        db.session.rollback()
+        db.rollback()
 
         raise HTTPException(status_code=400, detail="user already exists")
 
@@ -68,8 +69,8 @@ def register_user(data: BaseModel) -> dict:
         "email": user.email
     }
 
-def login_user(email, password) -> dict:
-    user = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
+def login_user(email, password, db: Session = Depends(get_db)) -> dict:
+    user = db.execute(select(User).where(User.email == email)).scalar_one_or_none()
 
     if user is None:
         raise HTTPException(status_code=404, detail="User does not exist")

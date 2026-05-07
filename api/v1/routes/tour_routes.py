@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from services.tourism_services import TourService, DestinationService
-from models.models import db, Tour, Destination
+from models.models import Tour, Destination
+from core.database import get_db
 from schemes.tour import TourCreateSchema
 from logger_config import tour_logger, api_logger
 
@@ -23,10 +25,10 @@ api_logger = api_logger
 tour_validator = TourValidator()
 
 @tour_router.get('', status_code=201)
-def get_tours():
+def get_tours(db: Session = Depends(get_db)):
     try:
         api_logger.info("GET /api/tours - получение списка туров")
-        tours = db.session.execute(select(Tour)).scalars().all()
+        tours = db.execute(select(Tour)).scalars().all()
         tour_logger.info(f"Найдено туров: {len(tours)}")
 
         return [t.to_dict() for t in tours]
@@ -37,7 +39,7 @@ def get_tours():
         raise HTTPException(status_code=500, detail=str(e))
 
 @tour_router.post('', status_code=200)
-def post_tour(payload: TourCreateSchema):
+def post_tour(payload: TourCreateSchema, db: Session = Depends(get_db)):
     try:
         api_logger.info(
             f'POST /api/v1/tours - создание тура для направления {payload.destination_id}'
@@ -64,14 +66,14 @@ def post_tour(payload: TourCreateSchema):
 
         TourService.validate_tour_creation(data)
 
-        destination = db.session.get(Destination, data.get('destination_id'))
+        destination = db.get(Destination, data.get('destination_id'))
         if not destination:
             raise HTTPException(status_code=404, detail=f'Destination {payload.destination_id} not found')
 
         tour = Tour(**data)
 
-        db.session.add(tour)
-        db.session.commit()
+        db.add(tour)
+        db.commit()
 
         tour_logger.info(
             f"Создан тур: ID {tour.id} для направления '{destination.name}'"
@@ -80,11 +82,11 @@ def post_tour(payload: TourCreateSchema):
         return tour.to_dict()
 
     except (TourValidationException, TourDateException) as e:
-        db.session.rollback()
+        db.rollback()
 
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        db.session.rollback()
+        db.rollback()
         tour_logger.error(
             f'Ошибка при создании тура: {str(e)}',
             exc_info=True
@@ -95,12 +97,12 @@ def post_tour(payload: TourCreateSchema):
             detail='Failed to create tour'
         )
 
-@tour_router.get('/{id}', status_code=200)
-def get_tour(id: int):
+@tour_router.get('/{tour_id}', status_code=200)
+def get_tour(tour_id: int):
     try:
-        api_logger.info(f"GET /api/v1/tours/{id} - получение тура")
+        api_logger.info(f"GET /api/v1/tours/{tour_id} - получение тура")
 
-        tour = TourService.get_tour_by_id(id)
+        tour = TourService.get_tour_by_id(tour_id)
 
         tour_logger.debug(
             f"Тур найден: ID {tour.id}, направление: {tour.destination.name}"
@@ -109,24 +111,28 @@ def get_tour(id: int):
         return tour.to_dict()
 
     except TourNotFoundException:
-        tour_logger.warning(f"Тур с ID {id} не найден")
+        tour_logger.warning(f"Тур с ID {tour_id} не найден")
 
-        raise HTTPException(status_code=404, detail=f'Tour {id} not found')
+        raise HTTPException(status_code=404, detail=f'Tour {tour_id} not found')
 
     except Exception as e:
         tour_logger.error(
-            f"Ошибка при получении тура {id}: {str(e)}",
+            f"Ошибка при получении тура {tour_id}: {str(e)}",
             exc_info=True
         )
 
         raise HTTPException(status_code=500, detail='Failed to fetch tour')
 
-@tour_router.put('/{id}', status_code=200)
-def update_tour(id: int, payload: TourCreateSchema):
+@tour_router.put('/{tour_id}', status_code=200)
+def update_tour(
+        tour_id: int,
+        payload: TourCreateSchema,
+        db: Session = Depends(get_db)
+):
     try:
-        api_logger.info(f"PUT /api/v1/tours/{id} - обновление тура")
+        api_logger.info(f"PUT /api/v1/tours/{tour_id} - обновление тура")
 
-        tour = TourService.get_tour_by_id(id)
+        tour = TourService.get_tour_by_id(tour_id)
 
         data = payload.model_dump(exclude_unset=True)
 
@@ -136,7 +142,7 @@ def update_tour(id: int, payload: TourCreateSchema):
                 detail='No data provided for update'
             )
 
-        tour_logger.debug(f"Данные для обновления тура {id}: {data}")
+        tour_logger.debug(f"Данные для обновления тура {tour_id}: {data}")
 
         try:
             tour_validator.validate_tour(data, 'update')
@@ -198,36 +204,36 @@ def update_tour(id: int, payload: TourCreateSchema):
         for key, value in data.items():
             setattr(tour, key, value)
 
-        db.session.commit()
+        db.commit()
         tour_logger.info(f"Тур обновлен: ID {tour.id}")
 
         return tour.to_dict()
 
     except TourNotFoundException as e:
-        tour_logger.warning(f"Тур с ID {id} не найден для обновления")
+        tour_logger.warning(f"Тур с ID {tour_id} не найден для обновления")
 
-        raise HTTPException(status_code=404, detail=f'Tour {id} not found')
+        raise HTTPException(status_code=404, detail=f'Tour {tour_id} not found')
 
     except (TourValidationException, TourDateException, DestinationNotFoundException) as e:
-        db.session.rollback()
-        tour_logger.warning(f"Ошибка валидации при обновлении тура {id}: {str(e)}")
+        db.rollback()
+        tour_logger.warning(f"Ошибка валидации при обновлении тура {tour_id}: {str(e)}")
 
         raise HTTPException(status_code=422, detail=str(e))
 
     except Exception as e:
-        db.session.rollback()
+        db.rollback()
         tour_logger.error(
-            f"Неожиданная ошибка при обновлении тура {id}: {str(e)}",
+            f"Неожиданная ошибка при обновлении тура {tour_id}: {str(e)}",
             exc_info=True
         )
 
         raise HTTPException(status_code=500, detail='Failed to fetch tour')
 
-@tour_router.delete('/{id}', status_code=204)
-def delete_tour(id: int):
+@tour_router.delete('/{tour_id}', status_code=204)
+def delete_tour(tour_id: int, db: Session = Depends(get_db)):
     try:
-        api_logger.info(f"DELETE /api/v1/tours/{id} - удаление тура")
-        tour = TourService.get_tour_by_id(id)
+        api_logger.info(f"DELETE /api/v1/tours/{tour_id} - удаление тура")
+        tour = TourService.get_tour_by_id(tour_id)
 
         if tour.users:
             tour_logger.warning(f"Попытка удаления тура с активными бронированиями: {len(tour.users)} бронирований")
@@ -238,26 +244,26 @@ def delete_tour(id: int):
                 f"Невозможно удалить тур. На него есть {len(tour.users)} активных бронирований"
             )
 
-        db.session.delete(tour)
-        db.session.commit()
+        db.delete(tour)
+        db.commit()
         tour_logger.info(f"Тур удален: ID {tour.id}")
 
         return {'message': 'Tour deleted successfully'}
 
     except TourNotFoundException as e:
-        tour_logger.warning(f"Тур с ID {id} не найден для удаления")
+        tour_logger.warning(f"Тур с ID {tour_id} не найден для удаления")
 
-        raise HTTPException(status_code=404, detail=f'Tour {id} not found')
+        raise HTTPException(status_code=404, detail=f'Tour {tour_id} not found')
 
     except TourValidationException as e:
-        db.session.rollback()
-        tour_logger.warning(f"Ошибка валидации при удалении тура {id}: {str(e)}")
+        db.rollback()
+        tour_logger.warning(f"Ошибка валидации при удалении тура {tour_id}: {str(e)}")
 
         raise HTTPException(status_code=422, detail=str(e))
 
     except Exception as e:
-        db.session.rollback()
-        tour_logger.error(f"Неожиданная ошибка при удалении тура {id}: {str(e)}", exc_info=True)
+        db.rollback()
+        tour_logger.error(f"Неожиданная ошибка при удалении тура {tour_id}: {str(e)}", exc_info=True)
 
         raise HTTPException(status_code=500, detail='Failed to fetch tour')
 

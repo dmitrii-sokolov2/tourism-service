@@ -1,9 +1,8 @@
 from fastapi import APIRouter
-
-from core.logging_config import setup_logging
+from logging import getLogger
 
 stats_router = APIRouter(prefix='/stats', tags=['stats'])
-logger = setup_logging()
+logger = getLogger(__name__)
 
 @stats_router.get('/threads')
 def thread_stats():

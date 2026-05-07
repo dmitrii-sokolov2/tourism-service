@@ -1,9 +1,9 @@
 from fastapi import APIRouter
+from logging import getLogger
 
-from core.logging_config import setup_logging
 
 health_router = APIRouter(tags=['health'])
-logger = setup_logging()
+logger = getLogger(__name__)
 
 @health_router.get('/health')
 def health_check():

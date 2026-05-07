@@ -1,25 +1,37 @@
-from core.extensions import db
+from core.database import Base
 from datetime import datetime
 
-user_tour = db.Table('user_tour',
-    db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
-    db.Column('tour_id', db.Integer, db.ForeignKey('tours.id'), primary_key=True),
-    db.Column('booking_date', db.DateTime, default=datetime.utcnow),
-    db.Column('status', db.String(20), default='confirmed')
+from sqlalchemy import (
+    Column, Integer, String, DateTime, Float,
+    Boolean, Text, ForeignKey, Table
+)
+from sqlalchemy.orm import relationship
+
+user_tour = Table(
+    'user_tour',
+    Base.metadata,
+    Column('user_id', Integer, ForeignKey('users.id'), primary_key=True),
+    Column('tour_id', Integer, ForeignKey('tours.id'), primary_key=True),
+    Column('booking_date', DateTime, default=datetime.utcnow),
+    Column('status', String(20), default='confirmed')
 )
 
-class User(db.Model):
+class User(Base):
     __tablename__ = 'users'
     
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    phone = db.Column(db.String(20))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    password_hash = db.Column(db.String(255), nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False)
+    email = Column(String(100), unique=True, nullable=False)
+    phone = Column(String(20))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    password_hash = Column(String(255), nullable=False)
     
-    booked_tours = db.relationship('Tour', secondary=user_tour, backref=db.backref('users', lazy=True))
-    refresh_tokens = db.relationship('RefreshToken', back_populates='user')
+    booked_tours = relationship(
+        'Tour',
+                secondary=user_tour,
+                back_populates='users'
+    )
+    refresh_tokens = relationship('RefreshToken', back_populates='user')
     
     def to_dict(self):
         return {
@@ -31,23 +43,28 @@ class User(db.Model):
             'booked_tours_count': len(self.booked_tours)
         }
 
-class Destination(db.Model):  
+class Destination(Base):
     __tablename__ = 'destinations'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    country = db.Column(db.String(50), nullable=False)
-    description = db.Column(db.Text)
-    price = db.Column(db.Float)
-    duration_days = db.Column(db.Integer)
-    latitude = db.Column(db.Float, nullable=True)
-    longitude = db.Column(db.Float, nullable=True)
-    rating = db.Column(db.Float, default=4.5)
-    tour_type = db.Column(db.String(50), default='Экскурсионный')
-    hotel_stars = db.Column(db.Integer, default=3)
-    transfer = db.Column(db.Boolean, default=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False)
+    country = Column(String(50), nullable=False)
+    description = Column(Text)
+    price = Column(Float)
+    duration_days = Column(Integer)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    rating = Column(Float, default=4.5)
+    tour_type = Column(String(50), default='Экскурсионный')
+    hotel_stars = Column(Integer, default=3)
+    transfer = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-    tours = db.relationship('Tour', backref='destination', lazy=True, cascade='all, delete-orphan')
+    tours = relationship(
+        'Tour',
+        back_populates='destination',
+        cascade='all, delete-orphan'
+    )
     
     def to_dict(self):
         return {
@@ -61,16 +78,22 @@ class Destination(db.Model):
             'tours_count': len(self.tours)
         }
 
-class Tour(db.Model):
+class Tour(Base):
     __tablename__ = 'tours'
     
-    id = db.Column(db.Integer, primary_key=True)
-    destination_id = db.Column(db.Integer, db.ForeignKey('destinations.id'), nullable=False)
-    start_date = db.Column(db.String(50), nullable=False)
-    end_date = db.Column(db.String(50), nullable=False)
-    available_slots = db.Column(db.Integer, default=10)
-    is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    id = Column(Integer, primary_key=True)
+    destination_id = Column(Integer, ForeignKey('destinations.id'), nullable=False)
+    start_date = Column(String(50), nullable=False)
+    end_date = Column(String(50), nullable=False)
+    available_slots = Column(Integer, default=10)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    users = relationship(
+        'User',
+        secondary=user_tour,
+        back_populates='booked_tours'
+    )
 
     def to_dict(self):
         return {
@@ -86,14 +109,14 @@ class Tour(db.Model):
             'price': self.destination.price if self.destination else None
         }
 
-class RefreshToken(db.Model):
+class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
     
-    id = db.Column(db.Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    user = db.relationship("User", back_populates="refresh_tokens")
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user = relationship("User", back_populates="refresh_tokens")
 
-    token_hash = db.Column(db.String(255), nullable=False)
-    expires_at = db.Column(db.DateTime, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    token_hash = Column(String(255), nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)

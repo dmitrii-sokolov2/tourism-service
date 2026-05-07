@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy import select, delete
+from sqlalchemy.orm import Session
 
 from services.tourism_services import UserService, BookingService, TourService
 from models.models import User
-from core.extensions import db
+from core.database import get_db
 
 from logger_config import user_logger, api_logger
 
@@ -26,10 +27,10 @@ user_router = APIRouter(prefix='/users', tags=['Users'])
 user_validator = UserValidator()
 
 @user_router.get('', status_code=200)
-def get_users():
+def get_users(db: Session = Depends(get_db)):
     try:
         api_logger.info("GET /api/v1/users - получение списка пользователей")
-        users = db.session.execute(select(User)).scalars().all()
+        users = db.execute(select(User)).scalars().all()
         user_logger.info(f"Найдено пользователей: {len(users)}")
 
         return [user.to_dict() for user in users]
@@ -40,12 +41,12 @@ def get_users():
         raise HTTPException(status_code=422, detail="Failed to fetch users")
 
 @user_router.post('', status_code=200)
-def post_user(payload: UserCreateSchema):
+def post_user(payload: UserCreateSchema, db: Session = Depends(get_db)):
     try:
         data = payload.model_dump()
 
         api_logger.info(
-            f'POST /api/v1/users - создание пользователя: {data.get('email')}'
+            f'POST /api/v1/users - создание пользователя: {data.email}'
         )
 
         try:
@@ -75,8 +76,8 @@ def post_user(payload: UserCreateSchema):
 
         user = User(**data)
 
-        db.session.add(user)
-        db.session.commit()
+        db.add(user)
+        db.commit()
 
         user_logger.info(
             f'Создан пользователь: {user.name} ({user.email}) ID: {user.id}'
@@ -85,12 +86,12 @@ def post_user(payload: UserCreateSchema):
         return user.to_dict()
 
     except (UserValidationException, UserEmailDuplicateException) as e:
-        db.session.rollback()
+        db.rollback()
 
         raise HTTPException(status_code=422, detail=str(e))
 
     except Exception as e:
-        db.session.rollback()
+        db.rollback()
 
         user_logger.error(
             f'Ошибка при создании пользователя: {str(e)}',
@@ -99,30 +100,34 @@ def post_user(payload: UserCreateSchema):
 
         raise HTTPException(status_code=500, detail='Failed to create user')
 
-@user_router.get('/{id}', status_code=200)
-def get_user(id: int):
+@user_router.get('/{user_id}', status_code=200)
+def get_user(user_id: int):
     try:
-        api_logger.info(f"GET /api/v1/users/{id} - получение пользователя")
-        user = UserService.get_user_by_id(id)
+        api_logger.info(f"GET /api/v1/users/{user_id} - получение пользователя")
+        user = UserService.get_user_by_id(user_id)
         user_logger.debug(f"Пользователь найден: {user.name} (ID: {user.id})")
 
         return user.to_dict()
 
     except UserNotFoundException:
-        user_logger.warning(f"Пользователь с ID {id} не найден")
+        user_logger.warning(f"Пользователь с ID {user_id} не найден")
 
         raise HTTPException(status_code=404, detail='User not found')
 
     except Exception as e:
-        user_logger.error(f"Ошибка при получении пользователя {id}: {str(e)}", exc_info=True)
+        user_logger.error(f"Ошибка при получении пользователя {user_id}: {str(e)}", exc_info=True)
 
         raise HTTPException(status_code=500, detail='Failed to fetch user')
 
-@user_router.put('/{id}', status_code=200)
-def update_user(id: int, payload: UserUpdateSchema):
+@user_router.put('/{user_id}', status_code=200)
+def update_user(
+        user_id: int,
+        payload: UserUpdateSchema,
+        db: Session = Depends(get_db)
+):
     try:
-        api_logger.info(f"PUT /api/v1/users/{id} - обновление пользователя")
-        user = UserService.get_user_by_id(id)
+        api_logger.info(f"PUT /api/v1/users/{user_id} - обновление пользователя")
+        user = UserService.get_user_by_id(user_id)
 
         data = payload.model_dump(exclude_unset=True)
 
@@ -143,7 +148,7 @@ def update_user(id: int, payload: UserUpdateSchema):
         for key, value in data.items():
             setattr(user, key, value)
 
-        db.session.commit()
+        db.commit()
 
         user_logger.info(
             f"Пользователь обновлен: {user.name} ({user.email}) ID: {user.id}"
@@ -152,34 +157,34 @@ def update_user(id: int, payload: UserUpdateSchema):
         return user.to_dict()
 
     except UserNotFoundException:
-        user_logger.warning(f"Пользователь с ID {id} не найден для обновления")
+        user_logger.warning(f"Пользователь с ID {user_id} не найден для обновления")
 
         raise HTTPException(status_code=404, detail='User not found')
 
     except (UserValidationException, UserEmailDuplicateException) as e:
-        db.session.rollback()
-        user_logger.warning(f"Ошибка валидации при обновлении пользователя {id}: {str(e)}")
+        db.rollback()
+        user_logger.warning(f"Ошибка валидации при обновлении пользователя {user_id}: {str(e)}")
 
         raise HTTPException(status_code=422, detail=str(e))
 
     except Exception as e:
-        db.session.rollback()
+        db.rollback()
         user_logger.error(
-            f'Неожиданная ошибка при обновлении пользователя {id}: {str(e)}',
+            f'Неожиданная ошибка при обновлении пользователя {user_id}: {str(e)}',
             exc_info=True
         )
 
         raise HTTPException(status_code=500, detail='Failed to update user')
 
-@user_router.delete('/{id}', status_code=204)
-def delete_user(id: int):
+@user_router.delete('/{user_id}', status_code=204)
+def delete_user(user_id: int, db: Session = Depends(get_db)):
     try:
-        api_logger.info(f"DELETE /api/v1/users/{id} - удаление пользователя")
+        api_logger.info(f"DELETE /api/v1/users/{user_id} - удаление пользователя")
 
-        user = UserService.get_user_by_id(id)
+        user = UserService.get_user_by_id(user_id)
 
-        db.session.delete(user)
-        db.session.commit()
+        db.delete(user)
+        db.commit()
 
         user_logger.info(
             f"Пользователь удален: {user.name} ({user.email}) ID: {user.id}"
@@ -188,21 +193,24 @@ def delete_user(id: int):
         return {'message': 'User deleted successfully'}
 
     except UserNotFoundException:
-        user_logger.warning(f"Пользователь с ID {id} не найден для удаления")
+        user_logger.warning(f"Пользователь с ID {user_id} не найден для удаления")
 
         raise HTTPException(status_code=404, detail='User not found')
 
     except Exception as e:
-        db.session.rollback()
+        db.rollback()
         user_logger.error(
-            f'Ошибка при удалении пользователя {id}: {str(e)}',
+            f'Ошибка при удалении пользователя {user_id}: {str(e)}',
             exc_info=True
         )
 
         raise HTTPException(status_code=500, detail='Failed to delete user')
 
 @user_router.delete('/bulk-delete', status_code=204)
-def bulk_delete_users(payload: UserBulkDeleteSchema):
+def bulk_delete_users(
+        payload: UserBulkDeleteSchema,
+        db: Session = Depends(get_db)
+):
     try:
         user_ids = payload.user_ids
 
@@ -210,7 +218,7 @@ def bulk_delete_users(payload: UserBulkDeleteSchema):
             f"DELETE /api/v1/users/bulk-delete - массовое удаление: {user_ids}"
         )
 
-        users = db.session.execute(select(User).where(User.id.in_(user_ids))).scalars().all()
+        users = db.execute(select(User).where(User.id.in_(user_ids))).scalars().all()
 
         found_ids = {user.id for user in users}
         missing_ids = [uid for uid in user_ids if uid not in found_ids]
@@ -238,9 +246,9 @@ def bulk_delete_users(payload: UserBulkDeleteSchema):
             )
 
         stmt = delete(User).where(User.id.in_(user_ids))
-        result = db.session.execute(stmt)
+        result = db.execute(stmt)
 
-        db.session.commit()
+        db.commit()
 
         user_logger.info(
             f'Удалено пользователей: {result.rowcount}'
@@ -251,10 +259,12 @@ def bulk_delete_users(payload: UserBulkDeleteSchema):
         }
 
     except HTTPException:
-        db.session.rollback()
+        db.rollback()
+
         raise
+
     except Exception as e:
-        db.session.rollback()
+        db.rollback()
 
         user_logger.error(
             f"Ошибка при массовом удалении: {str(e)}",
@@ -264,7 +274,7 @@ def bulk_delete_users(payload: UserBulkDeleteSchema):
         raise HTTPException(status_code=500, detail='Failed to delete user')
 
 @user_router.post('/{user_id}/book-tour/{tour_id}', status_code=200)
-def post(user_id: int, tour_id: int):
+def post(user_id: int, tour_id: int, db: Session = Depends(get_db)):
     try:
         api_logger.info(
             f"POST /api/v1/users/{user_id}/book-tour/{tour_id} - бронирование тура"
@@ -281,7 +291,7 @@ def post(user_id: int, tour_id: int):
 
         ThreadSafeBookingService.thread_safe_booking(user, tour)
 
-        db.session.commit()
+        db.commit()
 
         user_logger.info(
             f"Тур забронирован: пользователь {user.name} (ID: {user.id}), тур {tour.id}"
@@ -295,7 +305,7 @@ def post(user_id: int, tour_id: int):
         }
 
     except (UserNotFoundException, TourNotFoundException):
-        db.session.rollback()
+        db.rollback()
 
         raise HTTPException(status_code=404, detail='User or Tour not found')
 
@@ -305,7 +315,7 @@ def post(user_id: int, tour_id: int):
         DuplicateBookingException,
         BookingLimitException
     ) as e:
-        db.session.rollback()
+        db.rollback()
 
         user_logger.warning(f'Ошибка бронирования: {str(e)}')
 
@@ -315,7 +325,7 @@ def post(user_id: int, tour_id: int):
         )
 
     except Exception as e:
-        db.session.rollback()
+        db.rollback()
         user_logger.error(
             f"Неожиданная ошибка при бронировании: {str(e)}",
             exc_info=True

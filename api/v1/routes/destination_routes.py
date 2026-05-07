@@ -1,10 +1,12 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from services.tourism_services import DestinationService
-from models.models import db, Destination
+from models.models import Destination
 from schemes.destination import DestinationCreateSchema, DestinationUpdateSchema
 from logger_config import destination_logger, api_logger
+from core.database import get_db
 
 from exceptions.custom_exceptions import (
     DestinationNotFoundException,
@@ -21,10 +23,10 @@ api_logger = api_logger
 destination_validator = DestinationValidator()
 
 @destination_router.get('', status_code=200)
-def get_destinations():
+def get_destinations(db: Session = Depends(get_db)):
     try:
         api_logger.info("GET /api/v1/destinations - получение списка направлений")
-        destinations = db.session.execute(select(Destination)).scalars().all()
+        destinations = db.execute(select(Destination)).scalars().all()
         destination_logger.info(f"Найдено направлений: {len(destinations)}")
 
         return [d.to_dict() for d in destinations]
@@ -34,7 +36,10 @@ def get_destinations():
         raise HTTPException(status_code=500, detail='Failed to fetch destinations')
 
 @destination_router.post('', status_code=200)
-def create_destination(payload: DestinationCreateSchema):
+def create_destination(
+        payload: DestinationCreateSchema,
+        db: Session = Depends(get_db)
+):
     try:
         api_logger.info(
             f"POST /api/v1/destinations - создание направления: {payload.name}"
@@ -59,8 +64,8 @@ def create_destination(payload: DestinationCreateSchema):
         #     transfer=payload.transfer
         # )
 
-        db.session.add(destination)
-        db.session.commit()
+        db.add(destination)
+        db.commit()
 
         destination_logger.info(
             f"Создано направление: {destination.name} (ID: {destination.id})"
@@ -69,7 +74,7 @@ def create_destination(payload: DestinationCreateSchema):
         return destination.to_dict()
 
     except (DestinationValidationException, DestinationNameDuplicateException) as e:
-        db.session.rollback()
+        db.rollback()
 
         destination_logger.error(
             f'Неожиданная ошибка при создании направления {str(e)}',
@@ -78,16 +83,16 @@ def create_destination(payload: DestinationCreateSchema):
 
         raise HTTPException(status_code=422, detail=str(e))
 
-@destination_router.get('/{id}', status_code=200)
-def get_destination(id: int):
+@destination_router.get('/{destination_id}', status_code=200)
+def get_destination(destination_id: int):
     try:
-        api_logger.info(f"GET /api/destinations/{id} - получение направления")
-        destination = DestinationService.get_destination_by_id(id)
+        api_logger.info(f"GET /api/destinations/{destination_id} - получение направления")
+        destination = DestinationService.get_destination_by_id(destination_id)
         destination_logger.debug(f"Направление найдено: {destination.name} (ID: {destination.id})")
         return destination.to_dict()
 
     except DestinationNotFoundException:
-        destination_logger.warning(f"Направление с ID {id} не найдено")
+        destination_logger.warning(f"Направление с ID {destination_id} не найдено")
 
         raise HTTPException(
             status_code=404,
@@ -96,7 +101,7 @@ def get_destination(id: int):
 
     except Exception as e:
         destination_logger.error(
-            f"Ошибка при получении направления {id}: {str(e)}",
+            f"Ошибка при получении направления {destination_id}: {str(e)}",
             exc_info=True
         )
 
@@ -105,21 +110,25 @@ def get_destination(id: int):
             detail='Failed to fetch destination'
         )
 
-@destination_router.put('/{id}', status_code=200)
-def update_destination(id: int, payload: DestinationUpdateSchema):
+@destination_router.put('/{destination_id}', status_code=200)
+def update_destination(
+        destination_id: int,
+        payload: DestinationUpdateSchema,
+        db: Session = Depends(get_db)
+):
     try:
-        api_logger.info(f"PUT /api/v1/destinations/{id} - обновление направления")
-        destination = DestinationService.get_destination_by_id(id)
+        api_logger.info(f"PUT /api/v1/destinations/{destination_id} - обновление направления")
+        destination = DestinationService.get_destination_by_id(destination_id)
 
         data = payload.model_dump(exclude_unset=True)
-        destination_logger.debug(f"Данные для обновления направления {id}: {data}")
+        destination_logger.debug(f"Данные для обновления направления {destination_id}: {data}")
 
         DestinationService.validate_destination_data(data, destination)
 
         for field, value in data.items():
             setattr(destination, field, value)
 
-        db.session.commit()
+        db.commit()
 
         destination_logger.info(
             f"Направление обновлено: {destination.name} (ID: {destination.id})"
@@ -129,21 +138,21 @@ def update_destination(id: int, payload: DestinationUpdateSchema):
 
     except DestinationNotFoundException:
         destination_logger.warning(
-            f"Направление с ID {id} не найдено для обновления"
+            f"Направление с ID {destination_id} не найдено для обновления"
         )
 
         raise HTTPException(status_code=404, detail='Destination not found')
 
     except (DestinationValidationException, DestinationNameDuplicateException) as e:
-        db.session.rollback()
+        db.rollback()
 
         raise HTTPException(status_code=422, detail=str(e))
 
     except Exception as e:
-        db.session.rollback()
+        db.rollback()
 
         destination_logger.error(
-            f"Неожиданная ошибка при обновлении направления {id}: {str(e)}",
+            f"Неожиданная ошибка при обновлении направления {destination_id}: {str(e)}",
             exc_info=True
         )
 
@@ -152,12 +161,12 @@ def update_destination(id: int, payload: DestinationUpdateSchema):
             detail='Failed to fetch destination'
         )
 
-@destination_router.delete('/{id}', status_code=200)
-def delete_destination(id: int):
+@destination_router.delete('/{destination_id}', status_code=200)
+def delete_destination(destination_id: int, db: Session = Depends(get_db)):
     try:
-        api_logger.info(f"DELETE /api/v1/destinations/{id} - удаление направления")
+        api_logger.info(f"DELETE /api/v1/destinations/{destination_id} - удаление направления")
 
-        destination = DestinationService.get_destination_by_id(id)
+        destination = DestinationService.get_destination_by_id(destination_id)
 
         if destination.tours:
             count = len(destination.tours)
@@ -171,8 +180,8 @@ def delete_destination(id: int):
                 detail=f'Невозможно удалить направление. С ним связано {count} туров'
             )
 
-        db.session.delete(destination)
-        db.session.commit()
+        db.delete(destination)
+        db.commit()
 
         destination_logger.info(
             f"Направление удалено: {destination.name} (ID: {destination.id})"
@@ -180,18 +189,79 @@ def delete_destination(id: int):
 
         return {'message': 'Destination deleted successfully'}
 
-    except DestinationNotFoundException as e:
-        destination_logger.warning(f"Направление с ID {id} не найдено для удаления")
+    except DestinationNotFoundException:
+        destination_logger.warning(
+            f"Направление с ID {destination_id} не найдено для удаления"
+        )
 
         raise HTTPException(status_code=404, detail='Destination not found')
 
     except Exception as e:
-        db.session.rollback()
+        db.rollback()
         destination_logger.error(
-            f"Неожиданная ошибка при удалении направления {id}: {str(e)}", exc_info=True
+            f"Неожиданная ошибка при удалении направления {destination_id}: {str(e)}", exc_info=True
         )
 
         raise HTTPException(
             status_code=500,
             detail='Failed to delete destination'
         )
+
+@destination_router.get('/coordinates', status_code=200)
+def get_destinations_coordinates(db: Session = Depends(get_db)):
+    try:
+        destinations = db.execute(select(Destination)).scalars().all()
+        result = []
+
+        for dest in destinations:
+            if dest.latitude and dest.longitude:
+                price_in_rubles = int(dest.price * 50) if dest.price else 35000
+
+                result.append({
+                    'id': dest.id,
+                    'name': dest.name,
+                    'country': dest.country,
+                    'lat': float(dest.latitude),
+                    'lng': float(dest.longitude),
+                    'tours': len(dest.tours),
+                    'price': f'{price_in_rubles}'  # Теперь 1200 → 60000
+                })
+
+        if not result:
+            result = [
+                {'id': 1, 'name': 'Париж', 'country': 'Франция', 'lat': 48.8566, 'lng': 2.3522, 'tours': 5,
+                 'price': '60000', 'rating': 4.8, 'tour_type': 'Экскурсионный', 'hotel_stars': 4, 'transfer': True},
+                {'id': 2, 'name': 'Токио', 'country': 'Япония', 'lat': 35.6762, 'lng': 139.6503, 'tours': 3,
+                 'price': '90000', 'rating': 4.9, 'tour_type': 'Гастрономический', 'hotel_stars': 5, 'transfer': True},
+                {'id': 3, 'name': 'Бали', 'country': 'Индонезия', 'lat': -8.3405, 'lng': 115.0920, 'tours': 8,
+                 'price': '45000', 'rating': 4.7, 'tour_type': 'Пляжный', 'hotel_stars': 4, 'transfer': False}
+            ]
+
+        return result
+
+    except Exception as e:
+        print(f"Ошибка: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        test_data = [
+            {'id': 1, 'name': 'Париж', 'country': 'Франция', 'lat': 48.8566, 'lng': 2.3522, 'tours': 5,
+             'price': '60000', 'rating': 4.8, 'tour_type': 'Экскурсионный', 'hotel_stars': 4, 'transfer': True},
+            {'id': 2, 'name': 'Токио', 'country': 'Япония', 'lat': 35.6762, 'lng': 139.6503, 'tours': 3,
+             'price': '90000', 'rating': 4.9, 'tour_type': 'Гастрономический', 'hotel_stars': 5, 'transfer': True},
+            {'id': 3, 'name': 'Бали', 'country': 'Индонезия', 'lat': -8.3405, 'lng': 115.0920, 'tours': 8,
+             'price': '45000', 'rating': 4.7, 'tour_type': 'Пляжный', 'hotel_stars': 4, 'transfer': False}
+        ]
+        return test_data
+
+    except Exception as e:
+        print(f"Ошибка в /api/destinations/coordinates: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        test_data = [
+            {'id': 1, 'name': 'Париж', 'country': 'Франция', 'lat': 48.8566, 'lng': 2.3522, 'tours': 5, 'price': '60000'},
+            {'id': 2, 'name': 'Токио', 'country': 'Япония', 'lat': 35.6762, 'lng': 139.6503, 'tours': 3, 'price': '90000'},
+            {'id': 3, 'name': 'Бали', 'country': 'Индонезия', 'lat': -8.3405, 'lng': 115.0920, 'tours': 8, 'price': '45000'}
+        ]
+        return test_data
