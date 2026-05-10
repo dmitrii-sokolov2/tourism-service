@@ -1,7 +1,5 @@
 <template>
   <div class="tourism-app">
-    <div class="custom-cursor"></div>
-    <div class="particles"></div>
     <div class="hero-section" id="hero">
       <div class="hero-content">
         <h1 class="hero-title">
@@ -10,7 +8,7 @@
         <p class="hero-subtitle">Откройте мир путешествий с нами</p>
         
         <div class="timer-section">
-          <div class="timer-title">СУПЕРПРЕДЛОЖЕНИЕ </div>
+          <div class="timer-title">⭐ СУПЕРПРЕДЛОЖЕНИЕ ⭐</div>
           <div class="countdown">
             <div class="countdown-item">
               <span class="countdown-number" id="days">00</span>
@@ -48,80 +46,9 @@
         </div>
       </div>
     </div>
-
-    <div class="filters-drawer" @mouseenter="showFilters = true" @mouseleave="showFilters = false">
-      <div class="filters-tab">
-        <span class="tab-icon">🎯</span>
-        <span class="tab-text">Фильтры</span>
-      </div>
-      <div class="filters-panel" :class="{ 'filters-visible': showFilters }">
-        <h3>Фильтры</h3>
-        
-        <div class="filter-group">
-          <label>Цена (₽)</label>
-          <div class="price-range">
-            <input type="number" v-model="priceMin" placeholder="от">
-            <span>-</span>
-            <input type="number" v-model="priceMax" placeholder="до">
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <label>Длительность (дни)</label>
-          <div class="duration-range">
-            <input type="number" v-model="durationMin" placeholder="от">
-            <span>-</span>
-            <input type="number" v-model="durationMax" placeholder="до">
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <label>Страна</label>
-          <select v-model="selectedCountry">
-            <option value="">Все страны</option>
-            <option v-for="country in countries" :key="country" :value="country">{{ country }}</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label>Рейтинг</label>
-          <div class="rating-buttons">
-            <button v-for="star in 5" :key="star" @click="selectedRating = star" :class="{ active: selectedRating === star }" class="filter-btn">{{ star }}★</button>
-            <button @click="selectedRating = null" class="filter-clear">Все</button>
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <label>Тип тура</label>
-          <div class="type-buttons">
-            <button v-for="type in tourTypes" :key="type" @click="selectedType = type" :class="{ active: selectedType === type }" class="filter-btn">{{ type }}</button>
-            <button @click="selectedType = null" class="filter-clear">Все</button>
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <label>🏨 Отель</label>
-          <div class="stars-buttons">
-            <button v-for="star in [5,4,3]" :key="star" @click="selectedStars = star" :class="{ active: selectedStars === star }" class="filter-btn">{{ star }}★</button>
-            <button @click="selectedStars = null" class="filter-clear">Любой</button>
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <label>🚗 Трансфер</label>
-          <label class="checkbox-label">
-            <input type="checkbox" v-model="hasTransfer"> Трансфер включён
-          </label>
-        </div>
-
-        <button @click="applyFilters" class="apply-btn">Применить</button>
-        <button @click="resetFilters" class="reset-btn">Сбросить</button>
-      </div>
-    </div>
-
     <div class="game-section">
       <div class="section-header">
-        <h2>СОБЕРИ КОЛЛЕКЦИЮ СУВЕНИРОВ </h2>
+        <h2>🎁 СОБЕРИ КОЛЛЕКЦИЮ СУВЕНИРОВ 🎁</h2>
         <p>Кликай на сувениры, чтобы получить секретный промокод!</p>
       </div>
       <div class="souvenirs">
@@ -138,21 +65,93 @@
       </div>
     </div>
 
-    <!-- Глобус секция -->
-    <div class="globe-section parallax">
-      <div class="section-header">
-        <h2>Выберите своё приключение</h2>
-        <p>Кликните на любую точку на глобусе, чтобы узнать больше</p>
-      </div>
-      <div id="globe-container"></div>
+      <!-- Глобус с фильтрами -->
+<div class="globe-wrapper">
+  <div class="globe-section">
+    <div class="section-header">
+      <h2>🌍 Выберите своё приключение</h2>
+      <p>Кликните на любую точку на глобусе, чтобы узнать больше</p>
     </div>
+    <div id="globe-container"></div>
+  </div>
+
+  <div class="filters-drawer" @mouseenter="showFilters = true" @mouseleave="showFilters = false">
+    <div class="filters-tab">
+      <span class="tab-icon">🎯</span>
+      <span class="tab-text">Фильтры</span>
+    </div>
+    <div class="filters-panel" :class="{ 'filters-visible': showFilters }">
+      <h3>🔍 Фильтры</h3>
+      
+      <div class="filter-group">
+        <label>💰 Цена (₽)</label>
+        <div class="price-range">
+          <input type="number" v-model="priceMin" placeholder="от">
+          <span>-</span>
+          <input type="number" v-model="priceMax" placeholder="до">
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>📅 Длительность (дни)</label>
+        <div class="duration-range">
+          <input type="number" v-model="durationMin" placeholder="от">
+          <span>-</span>
+          <input type="number" v-model="durationMax" placeholder="до">
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>🌍 Страна</label>
+        <select v-model="selectedCountry">
+          <option value="">Все страны</option>
+          <option v-for="country in countries" :key="country" :value="country">{{ country }}</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>⭐ Рейтинг</label>
+        <div class="rating-buttons">
+          <button v-for="star in 5" :key="star" @click="selectedRating = star" :class="{ active: selectedRating === star }" class="filter-btn">{{ star }}★</button>
+          <button @click="selectedRating = null" class="filter-clear">Все</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>🏖️ Тип тура</label>
+        <div class="type-buttons">
+          <button v-for="type in tourTypes" :key="type" @click="selectedType = type" :class="{ active: selectedType === type }" class="filter-btn">{{ type }}</button>
+          <button @click="selectedType = null" class="filter-clear">Все</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>🏨 Отель</label>
+        <div class="stars-buttons">
+          <button v-for="star in [5,4,3]" :key="star" @click="selectedStars = star" :class="{ active: selectedStars === star }" class="filter-btn">{{ star }}★</button>
+          <button @click="selectedStars = null" class="filter-clear">Любой</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>🚗 Трансфер</label>
+        <label class="checkbox-label">
+          <input type="checkbox" v-model="hasTransfer"> Трансфер включён
+        </label>
+      </div>
+
+      <button @click="applyFilters" class="apply-btn">✅ Применить</button>
+      <button @click="resetFilters" class="reset-btn">🔄 Сбросить</button>
+    </div>
+  </div>
+</div>
 
     <!-- Кнопки авторизации -->
     <div class="auth-buttons">
-      <button v-if="!isLoggedIn" @click="$router.push('/login')" class="btn-login btn-glow">
+      <button v-if="!isLoggedIn" @click="$router.push('/login')" class="btn-login">
         🔐 Войти
       </button>
-      <button v-if="!isLoggedIn" @click="$router.push('/register')" class="btn-register btn-glow">
+      <button v-if="!isLoggedIn" @click="$router.push('/register')" class="btn-register">
         📝 Регистрация
       </button>
       <div v-if="isLoggedIn" class="user-info-glass">
@@ -204,24 +203,86 @@
           <div class="detail-item"><span class="detail-icon">🚗</span><span>Трансфер: {{ selectedCity?.transfer ? '✅ Включён' : '❌ Не включён' }}</span></div>
         </div>
         <div class="booking-form">
-          <h3>Забронировать</h3>
-          <div class="form-row"><label>Человек:</label><input type="number" v-model.number="bookingData.persons" min="1" max="10" @input="calculateTotal"></div>
-          <div class="form-row"><label>Категория отеля:</label><select v-model="bookingData.hotelStars" @change="calculateTotal"><option :value="3">Стандарт (3★)</option><option :value="4">Комфорт (4★)</option><option :value="5">Люкс (5★)</option></select></div>
-          <div class="form-row"><label>Питание:</label><select v-model="bookingData.meal" @change="calculateTotal"><option value="none">Без питания</option><option value="breakfast">Завтраки</option><option value="half">Полупансион</option><option value="full">Всё включено</option></select></div>
-          <div class="form-row"><label>Дата начала:</label><input type="date" v-model="bookingData.startDate" @change="calculateTotal"></div>
-          <div class="form-row"><label>Дата окончания:</label><input type="date" v-model="bookingData.endDate" @change="calculateTotal"></div>
-          <div class="total-price"><span>Итого:</span><span class="price">{{ totalPrice.toLocaleString() }} ₽</span></div>
-          <button class="book-btn" @click="bookTourExtended">Забронировать сейчас</button>
+              <h3>📅 Забронировать</h3>
+              
+              <div class="form-row">
+                <label>👥 Человек:</label>
+                <input type="number" v-model.number="bookingData.persons" min="1" max="10" @input="calculateTotal">
+              </div>
+
+              <div class="form-row">
+                <label>🏨 Категория отеля:</label>
+                <select v-model="bookingData.hotelStars" @change="calculateTotal">
+                  <option :value="3">🌟 Стандарт (3★)</option>
+                  <option :value="4">🌟🌟 Комфорт (4★)</option>
+                  <option :value="5">🌟🌟🌟 Люкс (5★)</option>
+                </select>
+              </div>
+
+              <div class="form-row">
+                <label>🍽️ Питание:</label>
+                <select v-model="bookingData.meal" @change="calculateTotal">
+                  <option value="none">Без питания</option>
+                  <option value="breakfast">Завтраки</option>
+                  <option value="half">Полупансион</option>
+                  <option value="full">Всё включено</option>
+                </select>
+              </div>
+
+              <div class="form-row">
+                <label>📅 Дата начала:</label>
+                <input type="date" v-model="bookingData.startDate" @change="calculateTotal">
+              </div>
+
+              <div class="form-row">
+                <label>📅 Дата окончания:</label>
+                <input type="date" v-model="bookingData.endDate" @change="calculateTotal">
+              </div>
+
+              <div class="promo-section">
+                <div class="promo-header" @click="showPromoInput = !showPromoInput">
+                  <span class="promo-icon">🎟️</span>
+                  <span class="promo-label">Есть промокод?</span>
+                  <span class="promo-toggle">{{ showPromoInput ? '▲' : '▼' }}</span>
+                </div>
+                <div class="promo-input" :class="{ 'promo-visible': showPromoInput }">
+                  <input type="text" v-model="promoInput" placeholder="Введите промокод" @keyup.enter="applyPromoCode">
+                  <button @click="applyPromoCode" class="apply-promo-btn">Применить</button>
+                </div>
+                <div v-if="promoMessage" class="promo-message" :class="{ 'promo-success': promoSuccess, 'promo-error': !promoSuccess }">
+                  {{ promoMessage }}
+                </div>
+              </div>
+
+              <div class="price-breakdown">
+                <div class="price-row">
+                  <span>💰 Базовая стоимость:</span>
+                  <span>{{ totalPrice.toLocaleString() }} ₽</span>
+                </div>
+                <div v-if="discountAmount > 0" class="price-row discount-row">
+                  <span>🎉 Скидка ({{ discountPercent }}%):</span>
+                  <span>- {{ discountAmount.toLocaleString() }} ₽</span>
+                </div>
+                <div class="price-row total-row">
+                  <span>💎 Итого:</span>
+                  <span class="final-price">{{ finalPrice.toLocaleString() }} ₽</span>
+                </div>
+                <div v-if="savedAmount > 0" class="saved-badge">
+                  💰 Вы сэкономили {{ savedAmount.toLocaleString() }} ₽!
+                </div>
+              </div>
+
+              <button class="book-btn" @click="bookTourExtended">✅ Забронировать сейчас</button>
+            </div>
         </div>
       </div>
     </div>
-  </div>
 </template>
 
 <script>
 import Globe from 'globe.gl'
 
-export default {
+export default {  
   name: 'HomePage',
   data() {
     return {
@@ -244,7 +305,20 @@ export default {
       showFilters: false,
       tourTypes: ['Экскурсионный', 'Пляжный', 'Горнолыжный', 'Гастрономический', 'Приключенческий'],
       showTourCard: false,
-      selectedCity: null,
+      showPromoInput: false,
+      promoInput: '',
+      promoMessage: '',
+      promoSuccess: false,
+      discountPercent: 0,
+      discountAmount: 0,
+      finalPrice: 0,
+      savedAmount: 0,
+      validPromoCodes: {
+        'TRAVEL2026': 15,
+        'WELCOME': 10,
+        'SUMMER': 20,
+        'TOURIST': 5
+      },
       bookingData: {
         persons: 1,
         hotelStars: 3,
@@ -273,9 +347,6 @@ export default {
     await this.loadCities()
     this.initGlobe()
     this.animateNumbers()
-    this.initParticles()
-    this.initCursor()
-    this.initParallax()
     this.startCountdown()
     this.typewriterEffect()
   },
@@ -298,7 +369,7 @@ export default {
       numbers.forEach(num => {
         const target = parseInt(num.getAttribute('data-target'))
         let current = 0
-        const increment = target / 50
+        const increment = target / 30
         const updateNumber = () => {
           current += increment
           if (current < target) {
@@ -308,7 +379,7 @@ export default {
             num.textContent = target
           }
         }
-        updateNumber()
+        setTimeout(updateNumber, 100)
       })
     },
 
@@ -328,11 +399,11 @@ export default {
         .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
         .pointsData(this.cities)
         .pointColor(() => '#ff4444')
-        .pointAltitude(0.05)
-        .pointRadius(0.8)
-        .pointLabel(d => `<div style="background:black; color:white; padding:10px;"><b>${d.name}</b><br>${d.country}<br>💰 ${d.price} ₽<br>⭐ ${d.rating || 4.5}</div>`)
+        .pointAltitude(0.03)  // уменьшено с 0.05
+        .pointRadius(0.6)     // уменьшено с 0.8
+        .pointLabel(d => `<div style="background:black; color:white; padding:8px; border-radius:6px;"><b>${d.name}</b><br>${d.country}<br>💰 ${d.price} ₽<br>⭐ ${d.rating || 4.5}</div>`)
         .onPointClick(d => {
-          if (!this.isLoggedIn) alert('Войдите, чтобы забронировать тур')
+          if (!this.isLoggedIn) alert('🔐 Войдите, чтобы забронировать тур')
           else { this.selectedCity = d; this.showTourCard = true; this.calculateTotal() }
         })
       this.globe(document.getElementById('globe-container'))
@@ -351,12 +422,23 @@ export default {
         days = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)))
       }
       this.totalPrice = Math.round(basePricePerDay * days * this.bookingData.persons * hotelMultiplier * mealMultiplier)
-    },
+      
+      if (this.discountPercent > 0) {
+        this.discountAmount = Math.round(this.totalPrice * this.discountPercent / 100)
+        this.finalPrice = this.totalPrice - this.discountAmount
+        this.savedAmount = this.discountAmount
+      } else {
+        this.discountAmount = 0
+        this.finalPrice = this.totalPrice
+        this.savedAmount = 0
+      }
+},
 
     async bookTourExtended() {
       if (!this.selectedCity) return
       const token = localStorage.getItem('token')
-      if (!token) { alert('Войдите, чтобы забронировать тур'); return }
+      if (!token) { alert('🔐 Войдите, чтобы забронировать тур'); return }
+      
       const booking = {
         destination_id: this.selectedCity.id,
         persons: this.bookingData.persons,
@@ -364,18 +446,21 @@ export default {
         meal: this.bookingData.meal,
         start_date: this.bookingData.startDate,
         end_date: this.bookingData.endDate,
-        total_price: this.totalPrice
+        original_price: this.totalPrice,
+        discount_percent: this.discountPercent,
+        final_price: this.finalPrice
       }
+      
       try {
         const response = await fetch('/api/book', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(booking) })
         const data = await response.json()
         if (response.ok) {
-          alert(`Тур в ${this.selectedCity.name} успешно забронирован!\n💰 Итого: ${this.totalPrice.toLocaleString()} ₽`)
+          alert(`✅ Тур в ${this.selectedCity.name} успешно забронирован!\n💰 Исходная цена: ${this.totalPrice.toLocaleString()} ₽\n🎉 Скидка: ${this.discountPercent}%\n💎 Итого: ${this.finalPrice.toLocaleString()} ₽`)
           this.closeTourCard()
         } else {
-          alert(`Ошибка: ${data.error || 'Попробуйте позже'}`)
+          alert(`❌ Ошибка: ${data.error || 'Попробуйте позже'}`)
         }
-      } catch (error) { alert('Ошибка соединения') }
+      } catch (error) { alert('❌ Ошибка соединения') }
     },
 
     applyFilters() {
@@ -417,39 +502,6 @@ export default {
       }
     },
 
-    initParticles() {
-      const particles = document.querySelector('.particles')
-      for (let i = 0; i < 100; i++) {
-        const particle = document.createElement('div')
-        particle.classList.add('particle')
-        particle.style.left = Math.random() * 100 + '%'
-        particle.style.top = Math.random() * 100 + '%'
-        particle.style.animationDelay = Math.random() * 5 + 's'
-        particle.style.animationDuration = 3 + Math.random() * 5 + 's'
-        particles.appendChild(particle)
-      }
-    },
-
-    initCursor() {
-      const cursor = document.querySelector('.custom-cursor')
-      document.addEventListener('mousemove', (e) => {
-        cursor.style.left = e.clientX + 'px'
-        cursor.style.top = e.clientY + 'px'
-      })
-      document.querySelectorAll('button, a, .souvenir').forEach(el => {
-        el.addEventListener('mouseenter', () => cursor.classList.add('cursor-hover'))
-        el.addEventListener('mouseleave', () => cursor.classList.remove('cursor-hover'))
-      })
-    },
-
-    initParallax() {
-      window.addEventListener('scroll', () => {
-        const scrolled = window.pageYOffset
-        const parallax = document.querySelector('.parallax')
-        if (parallax) parallax.style.transform = `translateY(${scrolled * 0.3}px)`
-      })
-    },
-
     startCountdown() {
       const targetDate = new Date()
       targetDate.setDate(targetDate.getDate() + 3)
@@ -464,14 +516,10 @@ export default {
           document.getElementById('seconds').innerHTML = '00'
           return
         }
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-        const hours = Math.floor((diff % (86400000)) / (3600000))
-        const minutes = Math.floor((diff % (3600000)) / (60000))
-        const seconds = Math.floor((diff % (60000)) / 1000)
-        document.getElementById('days').innerHTML = days.toString().padStart(2, '0')
-        document.getElementById('hours').innerHTML = hours.toString().padStart(2, '0')
-        document.getElementById('minutes').innerHTML = minutes.toString().padStart(2, '0')
-        document.getElementById('seconds').innerHTML = seconds.toString().padStart(2, '0')
+        document.getElementById('days').innerHTML = Math.floor(diff / 86400000).toString().padStart(2, '0')
+        document.getElementById('hours').innerHTML = Math.floor((diff % 86400000) / 3600000).toString().padStart(2, '0')
+        document.getElementById('minutes').innerHTML = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0')
+        document.getElementById('seconds').innerHTML = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0')
       }
       updateCountdown()
       setInterval(updateCountdown, 1000)
@@ -492,21 +540,39 @@ export default {
     },
 
     closeTourCard() { this.showTourCard = false; this.selectedCity = null },
-    logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.reload() }
-  }
+    logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.reload() 
+    },
+    applyPromoCode() {
+      const code = this.promoInput.trim().toUpperCase()
+      if (this.validPromoCodes[code]) {
+        this.discountPercent = this.validPromoCodes[code]
+        this.discountAmount = Math.round(this.totalPrice * this.discountPercent / 100)
+        this.finalPrice = this.totalPrice - this.discountAmount
+        this.savedAmount = this.discountAmount
+        this.promoSuccess = true
+        this.promoMessage = `✅ Промокод применён! Скидка ${this.discountPercent}%`
+        const promoSection = document.querySelector('.promo-section')
+        if (promoSection) {
+          promoSection.classList.add('promo-flash')
+          setTimeout(() => promoSection.classList.remove('promo-flash'), 500)
+        }
+      } else {
+        this.promoSuccess = false
+        this.promoMessage = 'Неверный промокод.'
+        this.discountPercent = 0
+        this.discountAmount = 0
+        this.finalPrice = this.totalPrice
+        this.savedAmount = 0
+      }
+      setTimeout(() => { this.promoMessage = '' }, 3000)
+    }
+  } 
 }
 </script>
 
 <style scoped>
-* { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
 .tourism-app { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4a 100%); min-height: 100vh; color: white; overflow-x: hidden; }
-
-.custom-cursor { width: 20px; height: 20px; border: 2px solid #ffaa33; border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; transition: 0.1s; transform: translate(-50%, -50%); }
-.cursor-hover { width: 40px; background: rgba(255,170,51,0.3); }
-
-.particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
-.particle { position: absolute; width: 2px; height: 2px; background: rgba(255,255,255,0.5); border-radius: 50%; animation: float linear infinite; }
-@keyframes float { 0% { transform: translateY(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-100vh); opacity: 0; } }
 
 .hero-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; position: relative; z-index: 1; }
 .gradient-text { font-size: 72px; background: linear-gradient(135deg, #fff, #ffaa33); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; letter-spacing: -2px; }
@@ -517,7 +583,7 @@ export default {
 .countdown { display: flex; justify-content: center; gap: 20px; }
 .countdown-number { display: block; font-size: 32px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; min-width: 60px; }
 .timer-offer { margin-top: 15px; color: #ffaa33; font-weight: bold; animation: pulse 1s infinite; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
 
 .hero-stats { display: flex; justify-content: center; gap: 60px; margin-top: 40px; flex-wrap: wrap; }
 .stat-number { font-size: 42px; font-weight: bold; color: #ffaa33; }
@@ -554,13 +620,9 @@ select { width: 100%; padding: 8px 10px; border-radius: 6px; background: rgba(25
 
 .globe-section { padding: 60px 20px; position: relative; z-index: 1; }
 #globe-container { width: 100%; height: 600px; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-.parallax { transition: transform 0.1s ease-out; }
 
-.btn-glow { position: relative; overflow: hidden; }
-.btn-glow::before { content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px; background: linear-gradient(45deg, #ffaa33, #ff8844, #ffaa33); border-radius: 30px; z-index: -1; animation: glow 2s linear infinite; }
-@keyframes glow { 0% { filter: blur(5px); opacity: 0.5; } 50% { filter: blur(10px); opacity: 1; } 100% { filter: blur(5px); opacity: 0.5; } }
 .auth-buttons { position: fixed; top: 20px; right: 20px; z-index: 200; display: flex; gap: 12px; }
-.btn-login, .btn-register { padding: 10px 24px; border-radius: 30px; font-weight: 600; cursor: pointer; border: none; backdrop-filter: blur(10px); font-size: 14px; position: relative; z-index: 1; }
+.btn-login, .btn-register { padding: 10px 24px; border-radius: 30px; font-weight: 600; cursor: pointer; border: none; backdrop-filter: blur(10px); font-size: 14px; }
 .btn-login { background: rgba(255,255,255,0.2); color: white; }
 .btn-register { background: #ffaa33; color: #1a1a2a; }
 .user-info-glass { background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); padding: 8px 16px; border-radius: 40px; display: flex; align-items: center; gap: 12px; }
@@ -568,7 +630,6 @@ select { width: 100%; padding: 8px 10px; border-radius: 6px; background: rgba(25
 .admin-link-glass { position: fixed; bottom: 20px; left: 20px; z-index: 200; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 30px; }
 .admin-link-glass a { color: #ffaa33; text-decoration: none; }
 
-/* Футер */
 .footer { background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); padding: 40px 20px 20px; margin-top: 40px; }
 .footer-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px; }
 .footer-brand h3 { color: #ffaa33; }
@@ -577,7 +638,6 @@ select { width: 100%; padding: 8px 10px; border-radius: 6px; background: rgba(25
 .footer-links a:hover, .footer-social a:hover { color: #ffaa33; }
 .footer-bottom { text-align: center; padding-top: 30px; margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; }
 
-/* Модальное окно */
 .tour-card-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 1000; display: flex; justify-content: center; align-items: center; }
 .glass-card { background: rgba(20,20,40,0.95); backdrop-filter: blur(20px); border-radius: 30px; border: 1px solid rgba(255,170,51,0.3); }
 .tour-card { padding: 30px; width: 500px; max-width: 90%; max-height: 90%; overflow-y: auto; position: relative; }
@@ -590,4 +650,229 @@ select { width: 100%; padding: 8px 10px; border-radius: 6px; background: rgba(25
 .total-price .price { color: #ffaa33; font-size: 24px; font-weight: bold; }
 .book-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #ffaa33, #ff8844); border: none; border-radius: 30px; font-weight: bold; cursor: pointer; transition: transform 0.3s; }
 .book-btn:hover { transform: scale(1.02); }
+/* Промокод секция */
+.promo-section {
+  margin: 15px 0;
+  border-top: 1px dashed rgba(255,170,51,0.3);
+  padding-top: 12px;
+}
+
+.promo-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px;
+  background: rgba(255,170,51,0.1);
+  border-radius: 10px;
+  transition: all 0.3s;
+}
+
+.promo-header:hover {
+  background: rgba(255,170,51,0.2);
+}
+
+.promo-icon { font-size: 18px; }
+.promo-label { flex: 1; font-size: 14px; color: #ffaa33; }
+.promo-toggle { font-size: 12px; color: #ffaa33; }
+
+.promo-input {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.promo-input.promo-visible {
+  max-height: 80px;
+}
+
+.promo-input input {
+  flex: 2;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,170,51,0.5);
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.apply-promo-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: #ffaa33;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.apply-promo-btn:hover {
+  background: #ffcc44;
+  transform: scale(1.02);
+}
+
+.promo-message {
+  margin-top: 8px;
+  font-size: 12px;
+  text-align: center;
+  padding: 5px;
+  border-radius: 8px;
+}
+
+.promo-success {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+.promo-error {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+/* Разбивка цены */
+.price-breakdown {
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 12px;
+  margin: 15px 0;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.discount-row {
+  color: #4CAF50;
+}
+
+.total-row {
+  border-top: 1px solid rgba(255,255,255,0.2);
+  padding-top: 8px;
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.final-price {
+  color: #ffaa33;
+  font-size: 20px;
+}
+
+.saved-badge {
+  background: rgba(76, 175, 80, 0.2);
+  text-align: center;
+  padding: 6px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: #4CAF50;
+  margin-top: 8px;
+}
+
+/* Анимация промокода */
+@keyframes promoFlash {
+  0% { background: rgba(255,170,51,0); }
+  50% { background: rgba(255,170,51,0.4); }
+  100% { background: rgba(255,170,51,0); }
+}
+
+.promo-flash {
+  animation: promoFlash 0.5s ease;
+}
+/* Контейнер для глобуса и фильтров */
+.globe-wrapper {
+  position: relative;
+  margin: 40px 20px;
+}
+
+/* Фильтры привязаны к глобусу */
+.filters-drawer {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  align-items: stretch;
+}
+
+.filters-tab {
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  padding: 16px 8px;
+  border-radius: 15px 0 0 15px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 170, 51, 0.4);
+  border-right: none;
+  height: 100px;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.filters-tab:hover {
+  background: rgba(0, 0, 0, 0.95);
+  transform: scale(1.02);
+}
+
+.tab-icon {
+  font-size: 22px;
+}
+
+.tab-text {
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: 2px;
+}
+
+.filters-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 480px;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(16px);
+  border-radius: 16px 0 0 16px;
+  padding: 20px;
+  color: white;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateX(100%);
+  pointer-events: none;
+  border-left: 3px solid #ffaa33;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+}
+
+.filters-panel.filters-visible {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+@media (max-width: 768px) {
+  .filters-panel {
+    width: 260px;
+    padding: 15px;
+  }
+  .filters-tab {
+    height: 80px;
+    padding: 12px 6px;
+  }
+  .tab-icon {
+    font-size: 18px;
+  }
+  .tab-text {
+    font-size: 10px;
+  }
+}
 </style>
