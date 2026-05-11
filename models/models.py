@@ -24,7 +24,7 @@ class User(Base):
     email = Column(String(100), unique=True, nullable=False)
     phone = Column(String(20))
     created_at = Column(DateTime, default=datetime.utcnow)
-    password_hash = Column(String(255), nullable=False)
+    password_hash = Column(String(255))
     
     booked_tours = relationship(
         'Tour',
@@ -58,7 +58,7 @@ class Destination(Base):
     tour_type = Column(String(50), default='Экскурсионный')
     hotel_stars = Column(Integer, default=3)
     transfer = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    # created_at = Column(DateTime, default=datetime.utcnow)
 
     tours = relationship(
         'Tour',
@@ -74,7 +74,7 @@ class Destination(Base):
             'description': self.description,
             'price': self.price,
             'duration_days': self.duration_days,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
+            # 'created_at': self.created_at.isoformat() if self.created_at else None,
             'tours_count': len(self.tours)
         }
 
@@ -89,6 +89,11 @@ class Tour(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    destination = relationship(
+        'Destination',
+        back_populates='tours'
+    )
+
     users = relationship(
         'User',
         secondary=user_tour,
@@ -98,15 +103,15 @@ class Tour(Base):
     def to_dict(self):
         return {
             'id': self.id,
-            'destination_id': self.destination_id,
-            'destination_name': self.destination.name if self.destination else None,
+            # 'destination_id': self.destination_id,
+            # 'destination_name': self.destination.name if self.destination else None,
             'start_date': self.start_date,
             'end_date': self.end_date,
             'available_slots': self.available_slots,
             'is_active': self.is_active,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'users_count': len(self.users),
-            'price': self.destination.price if self.destination else None
+            # 'price': self.destination.price if self.destination else None
         }
 
 class RefreshToken(Base):

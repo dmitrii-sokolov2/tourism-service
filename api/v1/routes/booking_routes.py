@@ -20,8 +20,8 @@ def bulk_bookings(data, db: Session = Depends(get_db)):
                 user_id = booking['user_id']
                 tour_id = booking['tour_id']
                 
-                user = UserService.get_user_by_id(user_id)
-                tour = TourService.get_tour_by_id(tour_id)
+                user = UserService.get_user_by_id(user_id, db)
+                tour = TourService.get_tour_by_id(tour_id, db)
                 
                 result = BookingService.create_booking(user, tour)
                 db.commit()

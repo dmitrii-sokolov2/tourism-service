@@ -3,14 +3,12 @@ services:
     build: .
     container_name: tourism-app
     ports:
-      - "5000:5000"
+      - "8000:8000"
     depends_on:
       - db
     environment:
       - DATABASE_URL=postgresql://tourist:123@db:5432/tourism_db
-      - FLASK_APP=app:create_app
       - PYTHONPATH=/app
-      - FLASK_ENV=development
     volumes:
       - .:/app
 
@@ -27,9 +25,19 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  frontend:
-    build: ./frontend
-    container_name: frontend
+#  frontend:
+#    build: ./frontend
+#    container_name: frontend
+#    expose:
+#      - "4173"
+#    depends_on:
+#      - web
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    container_name: tourism-nginx
     ports:
       - "8080:80"
     depends_on:

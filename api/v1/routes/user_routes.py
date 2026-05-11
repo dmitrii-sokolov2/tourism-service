@@ -46,33 +46,33 @@ def post_user(payload: UserCreateSchema, db: Session = Depends(get_db)):
         data = payload.model_dump()
 
         api_logger.info(
-            f'POST /api/v1/users - создание пользователя: {data.email}'
+            f'POST /api/v1/users - создание пользователя: {data.get("email")}'
         )
 
-        try:
-            user_validator.validate_user(data, 'add')
-        except ValidationError:
-            errors = user_validator.validate_with_details(data, 'add')
-
-            error_details = [
-                {
-                    "field": ".".join(str(p) for p in err.path),
-                    "message": err.message,
-                    "value": err.instance
-                }
-                for err in errors
-            ]
-
-            raise HTTPException(
-                status_code=422,
-                detail={
-                    "type": "Validation Error",
-                    "title": "Ошибка валидации данных пользователя",
-                    "errors": error_details
-                }
-            )
-
-        UserService.validate_user_data(data)
+        # try:
+        #     user_validator.validate_user(data, 'add')
+        # except ValidationError:
+        #     errors = user_validator.validate_with_details(data, 'add')
+        #
+        #     error_details = [
+        #         {
+        #             "field": ".".join(str(p) for p in err.path),
+        #             "message": err.message,
+        #             "value": err.instance
+        #         }
+        #         for err in errors
+        #     ]
+        #
+        #     raise HTTPException(
+        #         status_code=422,
+        #         detail={
+        #             "type": "Validation Error",
+        #             "title": "Ошибка валидации данных пользователя",
+        #             "errors": error_details
+        #         }
+        #     )
+        #
+        # UserService.validate_user_data(data, db)
 
         user = User(**data)
 
@@ -85,10 +85,10 @@ def post_user(payload: UserCreateSchema, db: Session = Depends(get_db)):
 
         return user.to_dict()
 
-    except (UserValidationException, UserEmailDuplicateException) as e:
-        db.rollback()
-
-        raise HTTPException(status_code=422, detail=str(e))
+    # except (UserValidationException, UserEmailDuplicateException) as e:
+    #     db.rollback()
+    #
+    #     raise HTTPException(status_code=422, detail=str(e))
 
     except Exception as e:
         db.rollback()
@@ -101,10 +101,10 @@ def post_user(payload: UserCreateSchema, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail='Failed to create user')
 
 @user_router.get('/{user_id}', status_code=200)
-def get_user(user_id: int):
+def get_user(user_id: int, db: Session = Depends(get_db)):
     try:
         api_logger.info(f"GET /api/v1/users/{user_id} - получение пользователя")
-        user = UserService.get_user_by_id(user_id)
+        user = UserService.get_user_by_id(user_id, db)
         user_logger.debug(f"Пользователь найден: {user.name} (ID: {user.id})")
 
         return user.to_dict()
@@ -127,7 +127,7 @@ def update_user(
 ):
     try:
         api_logger.info(f"PUT /api/v1/users/{user_id} - обновление пользователя")
-        user = UserService.get_user_by_id(user_id)
+        user = UserService.get_user_by_id(user_id, db)
 
         data = payload.model_dump(exclude_unset=True)
 
@@ -139,7 +139,7 @@ def update_user(
 
         user_logger.debug(f"Данные для обновления: {data}")
 
-        UserService.validate_user_data(data, user)
+        UserService.validate_user_data(data, db, user)
 
         # user.name = data.get('name', user.name)
         # user.email = data.get('email', user.email)
@@ -181,7 +181,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     try:
         api_logger.info(f"DELETE /api/v1/users/{user_id} - удаление пользователя")
 
-        user = UserService.get_user_by_id(user_id)
+        user = UserService.get_user_by_id(user_id, db)
 
         db.delete(user)
         db.commit()
@@ -280,8 +280,8 @@ def post(user_id: int, tour_id: int, db: Session = Depends(get_db)):
             f"POST /api/v1/users/{user_id}/book-tour/{tour_id} - бронирование тура"
         )
 
-        user = UserService.get_user_by_id(user_id)
-        tour = TourService.get_tour_by_id(tour_id)
+        user = UserService.get_user_by_id(user_id, db)
+        tour = TourService.get_tour_by_id(tour_id, db)
 
         user_logger.debug(
             f"Бронирование: пользователь {user.name}, тур {tour.id}"

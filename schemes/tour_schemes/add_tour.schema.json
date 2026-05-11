@@ -26,6 +26,6 @@
             "type": "boolean"
         }
     },
-    "required": ["destination_id", "start_date", "end_date", "price"],
+    "required": ["destination_id", "start_date", "end_date"],
     "additionalProperties": false
 }

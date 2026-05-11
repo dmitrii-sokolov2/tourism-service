@@ -2,13 +2,12 @@ import bcrypt, jwt, secrets, hashlib
 from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
-from pydantic import BaseModel
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from config import Config
 from models.models import RefreshToken, User
-from core.database import get_db
+from schemes.user import UserRegisterSchema
 
 SECRET_KEY = Config.SECRET_KEY
 
@@ -33,7 +32,7 @@ def create_access_token(user_id: int, email: str) -> str:
 def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
-def create_refresh_token(user_id: int, db: Session = Depends(get_db)) -> str:
+def create_refresh_token(user_id: int, db: Session) -> str:
     token = secrets.token_urlsafe(32)
     token_hash = hash_token(token)
 
@@ -48,8 +47,8 @@ def create_refresh_token(user_id: int, db: Session = Depends(get_db)) -> str:
 
     return token
 
-def register_user(data: BaseModel, db: Session = Depends(get_db)) -> dict:
-    password_hash = hash_password(data["password"])
+def register_user(data: UserRegisterSchema, db: Session) -> dict:
+    password_hash = hash_password(data.password)
 
     user = User(
         **data.model_dump(exclude={"password"}),
@@ -62,14 +61,14 @@ def register_user(data: BaseModel, db: Session = Depends(get_db)) -> dict:
     except IntegrityError:
         db.rollback()
 
-        raise HTTPException(status_code=400, detail="user already exists")
+        raise HTTPException(status_code=409, detail="user already exists")
 
     return {
         "id": user.id,
         "email": user.email
     }
 
-def login_user(email, password, db: Session = Depends(get_db)) -> dict:
+def login_user(email, password, db: Session) -> dict:
     user = db.execute(select(User).where(User.email == email)).scalar_one_or_none()
 
     if user is None:
@@ -79,7 +78,7 @@ def login_user(email, password, db: Session = Depends(get_db)) -> dict:
         raise HTTPException(status_code=401, detail="invalid password")
 
     access_token = create_access_token(user.id, user.email)
-    refresh_token = create_refresh_token(user.id)
+    refresh_token = create_refresh_token(user.id, db)
 
     return {
         "access_token": access_token,

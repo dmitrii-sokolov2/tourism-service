@@ -83,12 +83,22 @@ def create_destination(
 
         raise HTTPException(status_code=422, detail=str(e))
 
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
 @destination_router.get('/{destination_id}', status_code=200)
-def get_destination(destination_id: int):
+def get_destination(destination_id: int, db: Session = Depends(get_db)):
     try:
         api_logger.info(f"GET /api/destinations/{destination_id} - получение направления")
-        destination = DestinationService.get_destination_by_id(destination_id)
+        destination = DestinationService.get_destination_by_id(destination_id, db)
         destination_logger.debug(f"Направление найдено: {destination.name} (ID: {destination.id})")
+
         return destination.to_dict()
 
     except DestinationNotFoundException:
@@ -118,7 +128,7 @@ def update_destination(
 ):
     try:
         api_logger.info(f"PUT /api/v1/destinations/{destination_id} - обновление направления")
-        destination = DestinationService.get_destination_by_id(destination_id)
+        destination = DestinationService.get_destination_by_id(destination_id, db)
 
         data = payload.model_dump(exclude_unset=True)
         destination_logger.debug(f"Данные для обновления направления {destination_id}: {data}")
@@ -166,7 +176,7 @@ def delete_destination(destination_id: int, db: Session = Depends(get_db)):
     try:
         api_logger.info(f"DELETE /api/v1/destinations/{destination_id} - удаление направления")
 
-        destination = DestinationService.get_destination_by_id(destination_id)
+        destination = DestinationService.get_destination_by_id(destination_id, db)
 
         if destination.tours:
             count = len(destination.tours)

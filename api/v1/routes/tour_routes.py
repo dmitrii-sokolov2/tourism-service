@@ -27,7 +27,7 @@ tour_validator = TourValidator()
 @tour_router.get('', status_code=201)
 def get_tours(db: Session = Depends(get_db)):
     try:
-        api_logger.info("GET /api/tours - получение списка туров")
+        api_logger.info("GET /api/v1/tours - получение списка туров")
         tours = db.execute(select(Tour)).scalars().all()
         tour_logger.info(f"Найдено туров: {len(tours)}")
 
@@ -37,6 +37,20 @@ def get_tours(db: Session = Depends(get_db)):
         tour_logger.error(f"Ошибка при получении списка туров: {str(e)}", exc_info=True)
 
         raise HTTPException(status_code=500, detail=str(e))
+
+@tour_router.get('/available', status_code=200)
+def get_available_tours(db: Session = Depends(get_db)):
+    try:
+        api_logger.info("GET /api/v1/tours/available - получение доступных туров")
+        available_tours = TourService.get_available_tours(db)
+        tour_logger.info(f"Найдено доступных туров: {len(available_tours)}")
+
+        return [tour.to_dict() for tour in available_tours]
+
+    except Exception as e:
+        tour_logger.error(f"Ошибка при получении доступных туров: {str(e)}", exc_info=True)
+
+        raise HTTPException(status_code=500, detail='Failed to fetch available tours')
 
 @tour_router.post('', status_code=200)
 def post_tour(payload: TourCreateSchema, db: Session = Depends(get_db)):
@@ -50,7 +64,7 @@ def post_tour(payload: TourCreateSchema, db: Session = Depends(get_db)):
         try:
             tour_validator.validate_tour(data, 'add')
 
-        except ValidationError as e:
+        except ValidationError:
             errors = tour_validator.validate_with_details(data, 'add')
 
             error_details = [
@@ -64,9 +78,10 @@ def post_tour(payload: TourCreateSchema, db: Session = Depends(get_db)):
 
             raise HTTPException(status_code=422, detail=error_details)
 
-        TourService.validate_tour_creation(data)
+        TourService.validate_tour_creation(data, db)
 
         destination = db.get(Destination, data.get('destination_id'))
+
         if not destination:
             raise HTTPException(status_code=404, detail=f'Destination {payload.destination_id} not found')
 
@@ -98,11 +113,11 @@ def post_tour(payload: TourCreateSchema, db: Session = Depends(get_db)):
         )
 
 @tour_router.get('/{tour_id}', status_code=200)
-def get_tour(tour_id: int):
+def get_tour(tour_id: int, db: Session = Depends(get_db)):
     try:
         api_logger.info(f"GET /api/v1/tours/{tour_id} - получение тура")
 
-        tour = TourService.get_tour_by_id(tour_id)
+        tour = TourService.get_tour_by_id(tour_id, db)
 
         tour_logger.debug(
             f"Тур найден: ID {tour.id}, направление: {tour.destination.name}"
@@ -132,7 +147,7 @@ def update_tour(
     try:
         api_logger.info(f"PUT /api/v1/tours/{tour_id} - обновление тура")
 
-        tour = TourService.get_tour_by_id(tour_id)
+        tour = TourService.get_tour_by_id(tour_id, db)
 
         data = payload.model_dump(exclude_unset=True)
 
@@ -167,7 +182,7 @@ def update_tour(
             )
 
         if 'destination_id' in data and data['destination_id'] != tour.destination_id:
-            DestinationService.get_destination_by_id(data['destination_id'])
+            DestinationService.get_destination_by_id(data['destination_id'], db)
 
         if 'start_date' in data or 'end_date' in data:
             from datetime import datetime
@@ -233,7 +248,7 @@ def update_tour(
 def delete_tour(tour_id: int, db: Session = Depends(get_db)):
     try:
         api_logger.info(f"DELETE /api/v1/tours/{tour_id} - удаление тура")
-        tour = TourService.get_tour_by_id(tour_id)
+        tour = TourService.get_tour_by_id(tour_id, db)
 
         if tour.users:
             tour_logger.warning(f"Попытка удаления тура с активными бронированиями: {len(tour.users)} бронирований")
@@ -267,16 +282,3 @@ def delete_tour(tour_id: int, db: Session = Depends(get_db)):
 
         raise HTTPException(status_code=500, detail='Failed to fetch tour')
 
-@tour_router.get('/available', status_code=201)
-def get_available_tours():
-    try:
-        api_logger.info("GET /api/v1/tours/available - получение доступных туров")
-        available_tours = TourService.get_available_tours()
-        tour_logger.info(f"Найдено доступных туров: {len(available_tours)}")
-
-        return [tour.to_dict() for tour in available_tours]
-
-    except Exception as e:
-        tour_logger.error(f"Ошибка при получении доступных туров: {str(e)}", exc_info=True)
-
-        raise HTTPException(status_code=500, detail='Failed to fetch available tours')

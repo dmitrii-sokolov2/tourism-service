@@ -56,14 +56,6 @@ def create_app():
             }
         }
 
-    # api_v1_resource.add_resource(UserListResource, '/users')
-    # api_v1_resource.add_resource(UserResource, '/users/<int:id>')
-    # api_v1_resource.add_resource(UserBulkDeleteResource, '/users/bulk-delete')
-    # api_v1_resource.add_resource(UserBookTourResource, '/users/<int:user_id>/book-tour/<int:tour_id>')
-    #
-    # api_v1_resource.add_resource(DestinationListResource, '/destinations')
-    # api_v1_resource.add_resource(DestinationResource, '/destinations/<int:id>')
-
     api_v1.include_router(auth_router)
     api_v1.include_router(booking_router)
     api_v1.include_router(health_router)
@@ -99,8 +91,8 @@ def add_sample_data():
             Destination(name="Бали", country="Индонезия", description="Тропический рай с пляжами", price=900,
                         duration_days=10)
         ]
-        for dest in sample_destinations:
-            db.add(dest)
+        for destination in sample_destinations:
+            db.add(destination)
 
         sample_users = [
             User(name="Иван Иванов", email="ivan@mail.com", phone="+79991234567"),
