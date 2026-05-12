@@ -1,11 +1,12 @@
-from flask import Blueprint, jsonify
+from fastapi import APIRouter
+from logging import getLogger
 
-from core.logging_config import setup_logging
 
-health_bp = Blueprint('health', __name__)
-logger = setup_logging()
+health_router = APIRouter(tags=['health'])
+logger = getLogger(__name__)
 
-@health_bp.route('/health')
+@health_router.get('/health')
 def health_check():
     logger.debug("GET /api/health - проверка здоровья")
-    return jsonify({"status": "healthy", "database": "connected"})
+
+    return {"status": "healthy", "database": "connected"}
