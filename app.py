@@ -16,6 +16,8 @@ from api.v1.routes.tour_routes import tour_router
 from core.logging_config import setup_logging
 from logging import getLogger
 
+from services.auth_service import hash_password
+
 def create_app():
     app = FastAPI()
     setup_logging()
@@ -77,27 +79,62 @@ def add_sample_data():
     logger = setup_logging()
 
     try:
-        if db.execute(select(User)).first():
+        if db.execute(select(Destination)).first():
             logger.info("База данных уже содержит данные, пропускаем добавление тестовых данных")
             return
 
         logger.info("Добавляем тестовые данные...")
 
         sample_destinations = [
-            Destination(name="Париж", country="Франция", description="Город любви и света", price=1200,
-                        duration_days=5),
-            Destination(name="Токио", country="Япония", description="Современный мегаполис с древними традициями",
-                        price=1800, duration_days=7),
-            Destination(name="Бали", country="Индонезия", description="Тропический рай с пляжами", price=900,
-                        duration_days=10)
+            Destination(
+                name="Париж",
+                country="Франция",
+                description="Город любви и света",
+                price=1200,
+                duration_days=5
+            ),
+            Destination(
+                name="Токио",
+                country="Япония",
+                description="Современный мегаполис с древними традициями",
+                price=1800,
+                duration_days=7
+            ),
+            Destination(
+                name="Бали",
+                country="Индонезия",
+                description="Тропический рай с пляжами",
+                price=900,
+                duration_days=10
+            )
         ]
         for destination in sample_destinations:
             db.add(destination)
 
+        db.commit()
+
+        for destination in sample_destinations:
+            db.refresh(destination)
+
         sample_users = [
-            User(name="Иван Иванов", email="ivan@mail.com", phone="+79991234567"),
-            User(name="Мария Петрова", email="maria@mail.com", phone="+79997654321"),
-            User(name="Алексей Сидоров", email="alex@mail.com", phone="+79998887766")
+            User(
+                name="Иван Иванов",
+                email="ivan@mail.com",
+                phone="+79991234567",
+                password_hash=hash_password('12345')
+            ),
+            User(
+                name="Мария Петрова",
+                email="maria@mail.com",
+                phone="+79997654321",
+                password_hash=hash_password('qwerty')
+            ),
+            User(
+                name="Алексей Сидоров",
+                email="alex@mail.com",
+                phone="+79998887766",
+                password_hash=hash_password('hahahehe')
+            )
         ]
 
         for user in sample_users:
@@ -106,9 +143,24 @@ def add_sample_data():
         db.commit()
 
         sample_tours = [
-            Tour(destination_id=1, start_date="2024-12-01", end_date="2024-12-05", available_slots=5),
-            Tour(destination_id=2, start_date="2024-12-10", end_date="2024-12-17", available_slots=3),
-            Tour(destination_id=3, start_date="2024-12-15", end_date="2024-12-25", available_slots=8)
+            Tour(
+                destination_id=sample_destinations[0].id,
+                start_date="2024-12-01",
+                end_date="2024-12-05",
+                available_slots=5
+            ),
+            Tour(
+                destination_id=sample_destinations[1].id,
+                start_date="2024-12-10",
+                end_date="2024-12-17",
+                available_slots=3
+            ),
+            Tour(
+                destination_id=sample_destinations[2].id,
+                start_date="2024-12-15",
+                end_date="2024-12-25",
+                available_slots=8
+            )
         ]
 
         for tour in sample_tours:

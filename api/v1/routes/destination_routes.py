@@ -234,7 +234,7 @@ def get_destinations_coordinates(db: Session = Depends(get_db)):
                     'lat': float(dest.latitude),
                     'lng': float(dest.longitude),
                     'tours': len(dest.tours),
-                    'price': f'{price_in_rubles}'  # Теперь 1200 → 60000
+                    'price': f'{price_in_rubles}' 
                 })
 
         if not result:
