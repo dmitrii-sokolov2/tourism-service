@@ -12,6 +12,7 @@ from api.v1.routes.health_routes import health_router
 from api.v1.routes.stats_routes import stats_router
 from api.v1.routes.booking_routes import booking_router
 from api.v1.routes.tour_routes import tour_router
+from api.v1.routes.promo_routes import promo_router
 
 from core.logging_config import setup_logging
 from logging import getLogger
@@ -65,6 +66,7 @@ def create_app():
     api_v1.include_router(tour_router)
     api_v1.include_router(user_router)
     api_v1.include_router(destination_router)
+    api_v1.include_router(promo_router)
 
     app.include_router(api_v1)
 

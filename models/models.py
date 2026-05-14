@@ -125,3 +125,23 @@ class RefreshToken(Base):
     token_hash = Column(String(255), nullable=False)
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class PromoCode(Base):
+    __tablename__ = "promo_codes"
+
+    id = Column(Integer, primary_key=True)
+
+    code = Column(String(50), unique=True, nullable=False)
+
+    discount_percent = Column(Integer, nullable=True)
+    discount_amount = Column(Float, nullable=True)
+
+    is_active = Column(Boolean, default=True)
+
+    usage_limit = Column(Integer, nullable=True)
+    used_count = Column(Integer, nullable=True)
+
+    min_price = Column(Float, nullable=True)
+
+    expires_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
