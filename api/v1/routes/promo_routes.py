@@ -3,7 +3,17 @@ from sqlalchemy.orm import Session
 
 from core.database import get_db
 from services.promo_service import PromoService
+<<<<<<< Updated upstream
 from schemes.promocode import PromoCreateSchema, PromoUpdateSchema, PromoResponseSchema
+=======
+from schemes.promocode import (
+    PromoCreateSchema,
+    PromoUpdateSchema,
+    PromoResponseSchema,
+    PromoValidateSchema,
+    PromoValidateResponseSchema
+)
+>>>>>>> Stashed changes
 from models.models import PromoCode
 
 promo_router = APIRouter(prefix='/promo', tags=['Promo'])
@@ -11,7 +21,11 @@ promo_router = APIRouter(prefix='/promo', tags=['Promo'])
 @promo_router.post(
     '',
     response_model=PromoResponseSchema,
+<<<<<<< Updated upstream
     status_code=200
+=======
+    status_code=201
+>>>>>>> Stashed changes
 )
 def create_promo_code(
         payload: PromoCreateSchema,
@@ -24,6 +38,11 @@ def create_promo_code(
 
         PromoService.create_promo(promo_code, db)
 
+<<<<<<< Updated upstream
+=======
+        return promo_code
+
+>>>>>>> Stashed changes
     except Exception as e:
         db.rollback()
 
@@ -41,7 +60,11 @@ def get_promo_codes(db: Session = Depends(get_db)):
 
 @promo_router.get(
     '/active',
+<<<<<<< Updated upstream
     response_model=PromoResponseSchema,
+=======
+    response_model=list[PromoResponseSchema],
+>>>>>>> Stashed changes
     status_code=200
 )
 def get_available_promo_codes(db: Session = Depends(get_db)):
@@ -87,6 +110,7 @@ def delete_promo_code(promo_id: int, db: Session = Depends(get_db)):
     try:
         PromoService.delete_promo(promo_id, db)
 
+<<<<<<< Updated upstream
         return {"message": "Promo code deleted successfully"}
     except Exception as e:
         db.rollback()
@@ -96,5 +120,26 @@ def delete_promo_code(promo_id: int, db: Session = Depends(get_db)):
 @promo_router.post('/validate', status_code=200)
 def validate_promo_code(data: PromoCreateSchema, db: Session = Depends(get_db)):
     pass
+=======
+    except Exception as e:
+        db.rollback()
+
+        raise HTTPException(status_code=500, detail=str(e))
+
+@promo_router.post(
+    '/validate',
+    response_model=PromoValidateResponseSchema,
+    status_code=200
+)
+def validate_promo_code(
+        payload: PromoValidateSchema,
+        db: Session = Depends(get_db)
+):
+    response = PromoService.validate_promo(payload, db)
+
+    return response
+
+
+>>>>>>> Stashed changes
 
 # @promo_router.post('/apply', status_code=200) #in bookings router

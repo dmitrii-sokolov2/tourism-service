@@ -12,6 +12,7 @@ user_tour = Table(
     Base.metadata,
     Column('user_id', Integer, ForeignKey('users.id'), primary_key=True),
     Column('tour_id', Integer, ForeignKey('tours.id'), primary_key=True),
+    Column('promo_code_id', Integer, ForeignKey('promo_codes.id'), nullable=True),
     Column('booking_date', DateTime, default=datetime.utcnow),
     Column('status', String(20), default='confirmed')
 )
