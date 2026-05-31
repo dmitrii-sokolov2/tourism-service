@@ -2,11 +2,10 @@ import bcrypt, jwt, secrets, hashlib
 from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
-from pydantic import ValidationError
-from flask import abort
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 from config import Config
-from core.extensions import db
 from models.models import RefreshToken, User
 from schemes.user import UserRegisterSchema
 
@@ -33,7 +32,7 @@ def create_access_token(user_id: int, email: str) -> str:
 def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
-def create_refresh_token(user_id: int) -> str:
+def create_refresh_token(user_id: int, db: Session) -> str:
     token = secrets.token_urlsafe(32)
     token_hash = hash_token(token)
 
@@ -43,47 +42,43 @@ def create_refresh_token(user_id: int) -> str:
         expires_at=datetime.utcnow() + timedelta(days=7)
     )
 
-    db.session.add(refresh)
-    db.session.commit()
+    db.add(refresh)
+    db.commit()
 
     return token
 
-def register_user(data: dict) -> dict:
-    try:
-        user_data = UserRegisterSchema(**data)
-    except ValidationError as e:
-        abort(409, description=e.errors())
-
-    password_hash = hash_password(data["password"])
+def register_user(data: UserRegisterSchema, db: Session) -> dict:
+    password_hash = hash_password(data.password)
 
     user = User(
-        **user_data.model_dump(exclude={"password"}),
+        **data.model_dump(exclude={"password"}),
         password_hash=password_hash
     )
 
     try:
-        db.session.add(user)
-        db.session.commit()
+        db.add(user)
+        db.commit()
     except IntegrityError:
-        db.session.rollback()
-        abort(400, description="user already exists")
+        db.rollback()
+
+        raise HTTPException(status_code=409, detail="user already exists")
 
     return {
         "id": user.id,
         "email": user.email
     }
 
-def login_user(email, password) -> dict:
-    user = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
+def login_user(email, password, db: Session) -> dict:
+    user = db.execute(select(User).where(User.email == email)).scalar_one_or_none()
 
     if user is None:
-        abort(404, description="user does not exist")
+        raise HTTPException(status_code=404, detail="User does not exist")
 
     if not verify_password(password, user.password_hash):
-        abort(401, description="invalid password")
+        raise HTTPException(status_code=401, detail="invalid password")
 
     access_token = create_access_token(user.id, user.email)
-    refresh_token = create_refresh_token(user.id)
+    refresh_token = create_refresh_token(user.id, db)
 
     return {
         "access_token": access_token,

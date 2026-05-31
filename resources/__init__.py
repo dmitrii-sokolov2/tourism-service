@@ -1,11 +1,11 @@
 
-from resources.user_resources import (
+from api.v1.routes.user_routes import (
     UserListResource, UserResource, UserBulkDeleteResource, UserBookTourResource
 )
-from .destination_resources import (
+from api.v1.routes.destination_routes import (
     DestinationListResource, DestinationResource
 )
-from .tour_resources import (
+from api.v1.routes.tour_routes import (
     TourListResource, TourResource, AvailableToursResource
 )
 

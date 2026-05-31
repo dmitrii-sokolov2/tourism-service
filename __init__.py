@@ -6,13 +6,13 @@ from models.models import User, Destination, Tour
 from core.extensions import db
 
 # API ресурсы
-from resources.user_resources import (
+from api.v1.routes.user_routes import (
     UserListResource, UserResource, UserBulkDeleteResource, UserBookTourResource
 )
-from resources.destination_resources import (
+from api.v1.routes.destination_routes import (
     DestinationListResource, DestinationResource
 )
-from resources.tour_resources import (
+from api.v1.routes.tour_routes import (
     TourListResource, TourResource, AvailableToursResource
 )
 

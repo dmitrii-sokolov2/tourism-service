@@ -1,46 +1,48 @@
-from flask import Blueprint, jsonify, request
+from fastapi import HTTPException
+
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from schemes.booking import BookingToursSchema
 from services.tourism_services import UserService, TourService, BookingService
-from models.models import db
+from core.database import get_db
 
-from core.logging_config import setup_logging
+from logging import getLogger
 
-booking_bp = Blueprint('booking', __name__)
-logger = setup_logging()
+booking_router = APIRouter(prefix='/booking', tags=["booking"])
 
-@booking_bp.route('/bulk', methods=['POST'])
-def bulk_bookings():
+logger = getLogger(__name__)
+
+@booking_router.post('/bulk')
+def bulk_bookings(
+        payload: BookingToursSchema,
+        db: Session = Depends(get_db)
+):
     try:
-        data = request.get_json()
-        bookings = data.get('bookings', [])
         results = []
-        for booking in bookings:
-            try:
-                user_id = booking['user_id']
-                tour_id = booking['tour_id']
-                
-                user = UserService.get_user_by_id(user_id)
-                tour = TourService.get_tour_by_id(tour_id)
-                
-                result = BookingService.create_booking(user, tour)
-                db.session.commit()
-                
+
+        for booking in payload.tours:
+                user_id = booking.user_id
+                tour_id = booking.tour_id
+
+                user = UserService.get_user_by_id(user_id, db)
+                tour = TourService.get_tour_by_id(tour_id, db)
+
+                BookingService.create_booking(user, tour)
+
+                db.commit()
+
                 results.append({
-                    "status": "success", 
-                    "user_id": user_id, 
+                    "status": "success",
+                    "user_id": user_id,
                     "tour_id": tour_id,
                     "message": "Бронирование успешно"
                 })
-            except Exception as e:
-                db.session.rollback()
-                results.append({
-                    "status": "error", 
-                    "user_id": booking.get('user_id'), 
-                    "tour_id": booking.get('tour_id'),
-                    "error": str(e)
-                })
-        
-        return jsonify({"results": results})
-        
+        return results
+
     except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500  
+        db.rollback()
+
+        raise HTTPException(status_code=500, detail=str(e))
+
+
