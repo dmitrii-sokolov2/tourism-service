@@ -1,12 +1,10 @@
 <template>
   <div class="profile-container">
-    <!-- Hero секция профиля -->
     <div class="profile-hero">
       <div class="profile-hero-content">
         <div class="avatar-wrapper">
           <div class="avatar">
             <span class="avatar-emoji">👤</span>
-            <div class="avatar-status online"></div>
           </div>
           <h1 class="profile-name">{{ user.name || 'Путешественник' }}</h1>
           <p class="profile-email">{{ user.email }}</p>
@@ -29,7 +27,6 @@
       <div class="profile-bg-pattern"></div>
     </div>
 
-    <!-- Контент профиля -->
     <div class="profile-content">
       <div class="profile-tabs">
         <button class="tab-btn" :class="{ active: activeTab === 'favorites' }" @click="activeTab = 'favorites'">
@@ -45,7 +42,6 @@
         </button>
       </div>
 
-      <!-- Избранное -->
       <div v-if="activeTab === 'favorites'" class="favorites-grid">
         <div v-if="favorites.length === 0" class="empty-state">
           <div class="empty-icon">❤️</div>
@@ -67,7 +63,6 @@
         </div>
       </div>
 
-      <!-- Бронирования -->
       <div v-if="activeTab === 'bookings'" class="bookings-list">
         <div v-if="bookings.length === 0" class="empty-state">
           <div class="empty-icon">📅</div>
@@ -95,7 +90,6 @@
         </div>
       </div>
 
-      <!-- Настройки -->
       <div v-if="activeTab === 'settings'" class="settings-panel">
         <div class="settings-card">
           <h3>👤 Личные данные</h3>
@@ -211,7 +205,6 @@ export default {
         if (response.ok) {
           this.bookings = await response.json()
         } else {
-          // Демо-данные для показа
           this.bookings = []
         }
       } catch (error) {
@@ -268,18 +261,14 @@ export default {
       }
     },
     saveSettings() {
-      // Сохраняем настройки в localStorage
       const settings = {
         notifyDiscounts: this.notifyDiscounts,
         notifyReminders: this.notifyReminders
       }
       localStorage.setItem('userSettings', JSON.stringify(settings))
-      
-      // Обновляем пользователя
       const user = { ...this.user, name: this.editName, email: this.editEmail }
       localStorage.setItem('user', JSON.stringify(user))
       this.user = user
-      
       alert('Настройки сохранены!')
     },
     logout() {
@@ -302,9 +291,9 @@ export default {
   min-height: 100vh;
   background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4a 100%);
   color: white;
+  padding-bottom: 40px;
 }
 
-/* Hero секция */
 .profile-hero {
   position: relative;
   padding: 80px 20px 60px;
@@ -337,17 +326,6 @@ export default {
 
 .avatar-emoji {
   font-size: 48px;
-}
-
-.avatar-status {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  width: 18px;
-  height: 18px;
-  background: #4CAF50;
-  border-radius: 50%;
-  border: 2px solid #fff;
 }
 
 .profile-name {
@@ -393,7 +371,6 @@ export default {
   z-index: 1;
 }
 
-/* Табы */
 .profile-tabs {
   display: flex;
   justify-content: center;
@@ -433,7 +410,6 @@ export default {
   font-size: 12px;
 }
 
-/* Сетка карточек */
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -443,7 +419,6 @@ export default {
   margin: 0 auto;
 }
 
-/* Карточка избранного */
 .favorite-card, .booking-card {
   background: rgba(255,255,255,0.05);
   backdrop-filter: blur(10px);
@@ -503,7 +478,6 @@ export default {
   transform: scale(1.05);
 }
 
-/* Специальные стили для карточки бронирования */
 .booking-status {
   position: absolute;
   top: 15px;
@@ -524,7 +498,6 @@ export default {
   color: rgba(255,255,255,0.7);
 }
 
-/* Пустое состояние */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
@@ -560,7 +533,6 @@ export default {
   transform: scale(1.05);
 }
 
-/* Настройки */
 .settings-panel {
   max-width: 600px;
   margin: 0 auto;
@@ -629,11 +601,10 @@ export default {
   cursor: pointer;
 }
 
-/* Кнопка выхода */
 .logout-btn-bottom {
   display: block;
   width: 200px;
-  margin: 40px auto;
+  margin: 0 auto 40px;
   padding: 12px 24px;
   background: rgba(244,67,54,0.2);
   border: 1px solid #f44336;
