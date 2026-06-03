@@ -1,8 +1,8 @@
 """init
 
-Revision ID: cd0d5dadc2fd
+Revision ID: 82bbc8f41fd9
 Revises: 
-Create Date: 2026-05-18 01:13:31.917554
+Create Date: 2026-06-03 22:55:17.506414
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'cd0d5dadc2fd'
+revision: str = '82bbc8f41fd9'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -81,6 +81,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user_tour',
+    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('tour_id', sa.Integer(), nullable=False),
     sa.Column('promo_code_id', sa.Integer(), nullable=True),
@@ -89,7 +90,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['promo_code_id'], ['promo_codes.id'], ),
     sa.ForeignKeyConstraint(['tour_id'], ['tours.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('user_id', 'tour_id')
+    sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
 

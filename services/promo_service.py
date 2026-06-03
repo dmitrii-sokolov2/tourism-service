@@ -1,15 +1,11 @@
 from fastapi import HTTPException
 from sqlalchemy.orm.session import Session
 from sqlalchemy import select
-<<<<<<< Updated upstream
 
-from models.models import PromoCode
-=======
-from datetime import datetime
+from datetime import datetime, UTC
 
 from models.models import PromoCode
 from schemes.promocode import PromoValidateSchema
->>>>>>> Stashed changes
 
 class PromoService:
     @staticmethod
@@ -36,13 +32,9 @@ class PromoService:
 
     @staticmethod
     def get_promo_code(promo_id: int, db: Session) -> PromoCode:
-<<<<<<< Updated upstream
-        promo_code = db.execute(select(PromoCode).where(PromoCode.id == promo_id)).scalars().one_or_none()
-=======
         promo_code = db.execute(
             select(PromoCode).where(PromoCode.id == promo_id)
         ).scalars().one_or_none()
->>>>>>> Stashed changes
 
         if promo_code is None:
             raise HTTPException(
@@ -85,9 +77,7 @@ class PromoService:
             )
 
         db.delete(promo_code)
-<<<<<<< Updated upstream
-        db.commit()
-=======
+
         db.commit()
 
     @staticmethod
@@ -113,7 +103,7 @@ class PromoService:
                 detail='Promo code is inactive'
             )
 
-        if promo.expires_at and promo.expires_at < datetime.utcnow():
+        if promo.expires_at and promo.expires_at < datetime.now(UTC):
             raise HTTPException(
                 status_code=400,
                 detail='Promo code is expired'
@@ -134,17 +124,17 @@ class PromoService:
         ):
             raise HTTPException(
                 status_code=400,
-                detail='Promo minimum price exceeded'
+                detail='Minimum price not reached'
             )
 
         discount_value = 0
 
-        if promo.discount_percent:
+        if promo.discount_percent is not None:
             discount_value = (
                 payload.price * promo.discount_percent
             ) // 100
 
-        elif promo.discount_amount:
+        elif promo.discount_amount is not None:
             discount_value = promo.discount_amount
 
         final_price = max(
@@ -161,4 +151,3 @@ class PromoService:
             'discount_amount': promo.discount_amount,
             'discount_value': discount_value
         }
->>>>>>> Stashed changes

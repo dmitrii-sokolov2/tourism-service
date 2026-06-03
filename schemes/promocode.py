@@ -63,9 +63,6 @@ class PromoResponseSchema(BaseModel):
 
     min_price: int | None
 
-<<<<<<< Updated upstream
-    model_config = ConfigDict(from_attributes=True)
-=======
     model_config = ConfigDict(from_attributes=True)
 
 class PromoValidateSchema(BaseModel):
@@ -84,6 +81,3 @@ class PromoValidateResponseSchema(BaseModel):
     discount_amount: int | None
 
     discount_value: int
-
-
->>>>>>> Stashed changes

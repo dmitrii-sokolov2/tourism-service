@@ -7,11 +7,17 @@ from alembic import context
 
 from core.database import Base
 from models.models import *
+import os
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+config.set_main_option(
+    'sqlalchemy.url',
+    os.getenv('DATABASE_URL')
+)
 
 target_metadata = Base.metadata
 
