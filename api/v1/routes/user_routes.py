@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 
-from services.tourism_services import UserService, BookingService, TourService
+from services.tourism_services import UserService, TourService
 from models.models import User
 from core.database import get_db
 
@@ -20,7 +20,6 @@ from exceptions.custom_exceptions import (
 )
 
 from validators.user_validator import UserValidator
-from jsonschema.exceptions import ValidationError
 from schemes.user import UserCreateSchema, UserUpdateSchema, UserBulkDeleteSchema
 
 user_router = APIRouter(prefix='/users', tags=['Users'])

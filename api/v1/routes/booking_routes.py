@@ -3,7 +3,11 @@ from fastapi import HTTPException
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from schemes.booking import BookingToursSchema
+from schemes.booking import (
+    BookingToursSchema,
+    BookingApplySchema,
+    BookingApplyResponseSchema
+)
 from services.tourism_services import UserService, TourService, BookingService
 from core.database import get_db
 
@@ -15,8 +19,8 @@ logger = getLogger(__name__)
 
 @booking_router.post('/bulk')
 def bulk_bookings(
-        payload: BookingToursSchema,
-        db: Session = Depends(get_db)
+    payload: BookingToursSchema,
+    db: Session = Depends(get_db)
 ):
     try:
         results = []
@@ -45,4 +49,17 @@ def bulk_bookings(
 
         raise HTTPException(status_code=500, detail=str(e))
 
+@booking_router.post(
+    '/{booking_id}/apply-promo',
+    response_model=BookingApplyResponseSchema,
+    status_code=200
+)
+def apply_promo(
+    booking_id: int,
+    payload: BookingApplySchema,
+    db: Session = Depends(get_db)
+):
+    data = payload.model_dump()
+    booking = BookingService.apply_promo(data, booking_id, db)
 
+    return booking

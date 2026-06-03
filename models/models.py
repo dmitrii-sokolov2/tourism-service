@@ -1,3 +1,5 @@
+from sqlalchemy.ext.associationproxy import association_proxy
+
 from core.database import Base
 from datetime import datetime
 
@@ -7,14 +9,42 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-user_tour = Table(
-    'user_tour',
-    Base.metadata,
-    Column('user_id', Integer, ForeignKey('users.id'), primary_key=True),
-    Column('tour_id', Integer, ForeignKey('tours.id'), primary_key=True),
-    Column('booking_date', DateTime, default=datetime.utcnow),
-    Column('status', String(20), default='confirmed')
-)
+# user_tour = Table(
+#     'user_tour',
+#     Base.metadata,
+#     Column('user_id', Integer, ForeignKey('users.id'), primary_key=True),
+#     Column('tour_id', Integer, ForeignKey('tours.id'), primary_key=True),
+#     Column('promo_code_id', Integer, ForeignKey('promo_codes.id'), nullable=True),
+#     Column('booking_date', DateTime, default=datetime.utcnow),
+#     Column('status', String(20), default='confirmed')
+# )
+
+class UserTour(Base):
+    __tablename__ = "user_tour"
+
+    id = Column(Integer, primary_key=True)
+
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    tour_id = Column(Integer, ForeignKey('tours.id'), nullable=False)
+    promo_code_id = Column(Integer, ForeignKey('promo_codes.id'), nullable=True)
+
+    booking_date = Column(DateTime, default=datetime.utcnow)
+    status = Column(String(20), default='confirmed')
+
+    user = relationship(
+        'User',
+        back_populates='bookings'
+    )
+
+    tour = relationship(
+        'Tour',
+        back_populates='bookings'
+    )
+
+    promo_code = relationship(
+        'PromoCode',
+        back_populates='bookings'
+    )
 
 class User(Base):
     __tablename__ = 'users'
@@ -26,11 +56,23 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     password_hash = Column(String(255))
     
-    booked_tours = relationship(
-        'Tour',
-                secondary=user_tour,
-                back_populates='users'
+    # booked_tours = relationship(
+    #     'Tour',
+    #             secondary=user_tour,
+    #             back_populates='users'
+    # )
+
+    bookings = relationship(
+        'UserTour',
+        back_populates='user',
+        cascade='all, delete-orphan'
     )
+
+    booked_tours = association_proxy(
+        'bookings',
+        'tour'
+    )
+
     refresh_tokens = relationship('RefreshToken', back_populates='user')
     
     def to_dict(self):
@@ -74,7 +116,6 @@ class Destination(Base):
             'description': self.description,
             'price': self.price,
             'duration_days': self.duration_days,
-            # 'created_at': self.created_at.isoformat() if self.created_at else None,
             'tours_count': len(self.tours)
         }
 
@@ -94,24 +135,32 @@ class Tour(Base):
         back_populates='tours'
     )
 
-    users = relationship(
-        'User',
-        secondary=user_tour,
-        back_populates='booked_tours'
+    # users = relationship(
+    #     'User',
+    #     secondary=user_tour,
+    #     back_populates='booked_tours'
+    # )
+
+    bookings = relationship(
+        'UserTour',
+        back_populates='tour',
+        cascade='all, delete-orphan'
+    )
+
+    users = association_proxy(
+        'bookings',
+        'user'
     )
 
     def to_dict(self):
         return {
             'id': self.id,
-            # 'destination_id': self.destination_id,
-            # 'destination_name': self.destination.name if self.destination else None,
             'start_date': self.start_date,
             'end_date': self.end_date,
             'available_slots': self.available_slots,
             'is_active': self.is_active,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'users_count': len(self.users),
-            # 'price': self.destination.price if self.destination else None
         }
 
 class RefreshToken(Base):
@@ -125,3 +174,28 @@ class RefreshToken(Base):
     token_hash = Column(String(255), nullable=False)
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class PromoCode(Base):
+    __tablename__ = "promo_codes"
+
+    id = Column(Integer, primary_key=True)
+
+    code = Column(String(50), unique=True, nullable=False)
+
+    discount_percent = Column(Integer, nullable=True)
+    discount_amount = Column(Float, nullable=True)
+
+    is_active = Column(Boolean, default=True)
+
+    usage_limit = Column(Integer, nullable=True)
+    used_count = Column(Integer, default=0)
+
+    min_price = Column(Float, nullable=True)
+
+    expires_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    bookings = relationship(
+        'UserTour',
+        back_populates='promo_code'
+    )

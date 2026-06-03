@@ -4,8 +4,7 @@ from logger_config import user_logger, destination_logger, tour_logger
 from threading import Lock, BoundedSemaphore
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from fastapi import Depends
-from core.database import get_db, SessionLocal
+from core.database import SessionLocal
 
 class TourService:
     @staticmethod

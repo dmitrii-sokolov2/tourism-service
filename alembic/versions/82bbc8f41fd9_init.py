@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 73f91e89f3ac
+Revision ID: 82bbc8f41fd9
 Revises: 
-Create Date: 2026-05-12 02:12:25.884456
+Create Date: 2026-06-03 22:55:17.506414
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '73f91e89f3ac'
+revision: str = '82bbc8f41fd9'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -35,6 +35,20 @@ def upgrade() -> None:
     sa.Column('hotel_stars', sa.Integer(), nullable=True),
     sa.Column('transfer', sa.Boolean(), nullable=True),
     sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('promo_codes',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('code', sa.String(length=50), nullable=False),
+    sa.Column('discount_percent', sa.Integer(), nullable=True),
+    sa.Column('discount_amount', sa.Float(), nullable=True),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
+    sa.Column('usage_limit', sa.Integer(), nullable=True),
+    sa.Column('used_count', sa.Integer(), nullable=True),
+    sa.Column('min_price', sa.Float(), nullable=True),
+    sa.Column('expires_at', sa.DateTime(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('code')
     )
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -67,13 +81,16 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user_tour',
+    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('tour_id', sa.Integer(), nullable=False),
+    sa.Column('promo_code_id', sa.Integer(), nullable=True),
     sa.Column('booking_date', sa.DateTime(), nullable=True),
     sa.Column('status', sa.String(length=20), nullable=True),
+    sa.ForeignKeyConstraint(['promo_code_id'], ['promo_codes.id'], ),
     sa.ForeignKeyConstraint(['tour_id'], ['tours.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('user_id', 'tour_id')
+    sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
 
@@ -85,5 +102,6 @@ def downgrade() -> None:
     op.drop_table('tours')
     op.drop_table('refresh_tokens')
     op.drop_table('users')
+    op.drop_table('promo_codes')
     op.drop_table('destinations')
     # ### end Alembic commands ###
