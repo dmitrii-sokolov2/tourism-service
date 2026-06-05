@@ -8,7 +8,9 @@ from schemes.booking import (
     BookingApplySchema,
     BookingApplyResponseSchema
 )
-from services.tourism_services import UserService, TourService, BookingService
+from services.tourism_services import UserService, TourService #, BookingService
+from services.booking_service import BookingService
+from schemes.booking import BookingTour
 from core.database import get_db
 
 from logging import getLogger
@@ -16,6 +18,33 @@ from logging import getLogger
 booking_router = APIRouter(prefix='/booking', tags=["booking"])
 
 logger = getLogger(__name__)
+
+@booking_router.get('', status_code=200)
+def get_bookings(db: Session = Depends(get_db)):
+    bookings = BookingService.get_booking_list(db)
+
+    return bookings
+
+@booking_router.get('/{booking_id}', status_code=200)
+def get_booking(
+        booking_id: int,
+        db: Session = Depends(get_db)
+):
+    return BookingService.get_booking_by_id(booking_id, db)
+
+@booking_router.post('', status_code=201)
+def create_booking(payload: BookingTour, db: Session = Depends(get_db)):
+    try:
+        booking = BookingService.create_booking(
+            payload.user_id,
+            payload.tour_id,
+            db
+        )
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return booking
 
 @booking_router.post('/bulk')
 def bulk_bookings(
@@ -59,7 +88,12 @@ def apply_promo(
     payload: BookingApplySchema,
     db: Session = Depends(get_db)
 ):
+    # try:
     data = payload.model_dump()
     booking = BookingService.apply_promo(data, booking_id, db)
+    # except Exception as e:
+    #     print(e)
+    #     raise HTTPException(status_code=400, detail=str(e))
+
 
     return booking

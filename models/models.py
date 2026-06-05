@@ -55,12 +55,6 @@ class User(Base):
     phone = Column(String(20))
     created_at = Column(DateTime, default=datetime.utcnow)
     password_hash = Column(String(255))
-    
-    # booked_tours = relationship(
-    #     'Tour',
-    #             secondary=user_tour,
-    #             back_populates='users'
-    # )
 
     bookings = relationship(
         'UserTour',
@@ -100,7 +94,6 @@ class Destination(Base):
     tour_type = Column(String(50), default='Экскурсионный')
     hotel_stars = Column(Integer, default=3)
     transfer = Column(Boolean, default=False)
-    # created_at = Column(DateTime, default=datetime.utcnow)
 
     tours = relationship(
         'Tour',
@@ -134,12 +127,6 @@ class Tour(Base):
         'Destination',
         back_populates='tours'
     )
-
-    # users = relationship(
-    #     'User',
-    #     secondary=user_tour,
-    #     back_populates='booked_tours'
-    # )
 
     bookings = relationship(
         'UserTour',
