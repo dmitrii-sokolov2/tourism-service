@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from datetime import datetime, UTC
 
-from models.models import PromoCode
+from models.models import PromoCode, UserTour
 from schemes.promocode import PromoValidateSchema
 
 class PromoService:
@@ -25,7 +25,7 @@ class PromoService:
     @staticmethod
     def get_available_promo_codes(db: Session) -> list[PromoCode]:
         promo_codes = db.execute(
-            select(PromoCode).where(PromoCode.is_available)
+            select(PromoCode).where(PromoCode.is_active)
         ).scalars().all()
 
         return [promo for promo in promo_codes]
@@ -82,31 +82,22 @@ class PromoService:
 
     @staticmethod
     def validate_promo(
-            payload: PromoValidateSchema,
-            db: Session
+        promo: PromoCode,
+        price: float
     ) -> dict:
-        promo = db.execute(
-            select(PromoCode).where(
-               PromoCode.code == payload.code
-            )
-        ).scalars().one_or_none()
-
-        if promo is None:
-            raise HTTPException(
-                status_code=404,
-                detail='Promo code does not exist'
-            )
-
-        if not promo.is_available:
+        if not promo.is_active:
             raise HTTPException(
                 status_code=400,
-                detail='Promo code is inactive'
+                detail="Promo code is inactive"
             )
 
-        if promo.expires_at and promo.expires_at < datetime.now(UTC):
+        if (
+            promo.expires_at is not None
+            and promo.expires_at < datetime.utcnow()
+        ):
             raise HTTPException(
                 status_code=400,
-                detail='Promo code is expired'
+                detail="Promo code is expired"
             )
 
         if (
@@ -115,39 +106,33 @@ class PromoService:
         ):
             raise HTTPException(
                 status_code=400,
-                detail='Promo usage limit exceeded'
+                detail="Promo usage limit exceeded"
             )
 
         if (
             promo.min_price is not None
-            and promo.min_price > payload.price
+            and price < promo.min_price
         ):
             raise HTTPException(
                 status_code=400,
-                detail='Minimum price not reached'
+                detail="Minimum price not reached"
             )
-
-        discount_value = 0
 
         if promo.discount_percent is not None:
             discount_value = (
-                payload.price * promo.discount_percent
-            ) // 100
+                price * promo.discount_percent
+            ) / 100
 
-        elif promo.discount_amount is not None:
-            discount_value = promo.discount_amount
+        else:
+            discount_value = promo.discount_amount or 0
 
         final_price = max(
-            payload.price - discount_value,
+            price - discount_value,
             0
         )
 
         return {
-            'valid': True,
-            'code': promo.code,
-            'original_price': payload.price,
-            'final_price': final_price,
-            'discount_percent': promo.discount_percent,
-            'discount_amount': promo.discount_amount,
-            'discount_value': discount_value
+            "original_price": price,
+            "final_price": final_price,
+            "discount_value": discount_value
         }

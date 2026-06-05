@@ -10,6 +10,7 @@ class BookingToursSchema(BaseModel):
 class BookingApplySchema(BaseModel):
     code: str
 
+
 class BookingApplyResponseSchema(BaseModel):
     booking_id: int
 
@@ -18,5 +19,9 @@ class BookingApplyResponseSchema(BaseModel):
 
     discount_percent: int | None = None
     discount_amount: float | None = None
+
+    original_price: float
+    final_price: float
+    discount_value: float
 
     status: str

@@ -67,7 +67,7 @@ class PromoResponseSchema(BaseModel):
 
 class PromoValidateSchema(BaseModel):
     code: str
-    price: int = Field(ge=0)
+    # price: int = Field(ge=0)
 
 class PromoValidateResponseSchema(BaseModel):
     valid: bool
